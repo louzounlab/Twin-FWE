@@ -27,6 +27,19 @@
 {% endblock %}
 
 {% block content %}
+    <style>
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px; /* Adjust the gap between images */
+        }
+
+        .image-grid img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+    </style>
     <script>
         function glow1() {
             // Remove 'selected' class from all buttons
@@ -59,6 +72,21 @@
         }
     </script>
 
+    {% if result_files %}
+        <br>
+        <br>
+        <div class="container row">
+            {% for file in result_files %}
+                <div class="col-md-6 image-grid">
+                    <a href="{{ file }}" download>
+                        <img src="{{ file }}" height="300" width="400">
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <h4 style="color: red; text-align: center;">{{ error }}</h4>
     <br>
     <div class="text-center">
         <h1>Name</h1>
@@ -72,7 +100,7 @@
             <input type="text" hidden id="cda_type" name="cda_type" value="None">
             <div class="row" id="first_row">
                 <div class="col">
-                    <label for="cda">MCDA  <b style="color: blue; font-size: 20px;">or</b>  DCDA</label>
+                    <label for="cda">MCDA <b style="color: blue; font-size: 20px;">or</b> DCDA</label>
                     <br>
                     <br>
                     <button class="glow-button" onclick="glow1()" id="MCDA" name="MCDA" type="button">MCDA</button>
@@ -81,12 +109,26 @@
                 <div class="col">
                     <label for="week">Week</label>
                     <br>
-                    <input name="week" id="week" type="number" required>
+                    <br>
+                    <input name="week" id="week" type="number" placeholder="single value">
+                    <br>
+                    <br>
+                    <b style="font-size: 20px; color: blue;">OR</b>
+                    <br>
+                    <br>
+                    <input name="week_file" id="week_file" type="file" placeholder="column file" accept="csv">
                 </div>
                 <div class="col">
                     <label for="weight">Weight</label>
                     <br>
-                    <input name="weight" id="weight" type="number" required>
+                    <br>
+                    <input name="weight" id="weight" type="number" placeholder="single value">
+                    <br>
+                    <br>
+                    <b style="font-size: 20px; color: blue;">OR</b>
+                    <br>
+                    <br>
+                    <input name="weight_file" id="weight_file" type="file" placeholder="column file" accept="csv">
                 </div>
             </div>
             <br>
