@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <style>
+
+        .glow-button {
+            background-color: #3498db; /* Default background color */
+            color: #ffffff; /* Default text color */
+            padding: 15px 20px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        .glow-button:hover {
+            background-color: #2980b9; /* Hover background color */
+        }
+
+        .glow-button.selected {
+            background-color: plum; /* Selected background color */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Add a box shadow when selected */
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+    <script>
+        function glow1() {
+            // Remove 'selected' class from all buttons
+            let buttons = document.querySelectorAll('.glow-button');
+            buttons.forEach(function (btn) {
+                btn.classList.remove('selected');
+            });
+
+            // Add 'selected' class to the clicked button
+            let selectedButton = document.getElementById('MCDA');
+            selectedButton.classList.add('selected');
+
+            // Update the value of the hidden input with the id/name of the selected button
+            document.getElementById('cda_type').value = "MCDA";
+        }
+
+        function glow2() {
+            // Remove 'selected' class from all buttons
+            let buttons = document.querySelectorAll('.glow-button');
+            buttons.forEach(function (btn) {
+                btn.classList.remove('selected');
+            });
+
+            // Add 'selected' class to the clicked button
+            let selectedButton = document.getElementById('DCDA');
+            selectedButton.classList.add('selected');
+
+            // Update the value of the hidden input with the id/name of the selected button
+            document.getElementById('cda_type').value = "DCDA";
+        }
+    </script>
+
+    <br>
+    <div class="text-center">
+        <h1>Name</h1>
+    </div>
+    <div class="container text-center">
+        <br>
+        <h4>Please fill the following details:</h4>
+        <br>
+        <br>
+        <form action="/process_form" method="post" enctype="multipart/form-data">
+            <input type="text" hidden id="cda_type" name="cda_type" value="None">
+            <div class="row" id="first_row">
+                <div class="col">
+                    <label for="cda">MCDA  <b style="color: blue; font-size: 20px;">or</b>  DCDA</label>
+                    <br>
+                    <br>
+                    <button class="glow-button" onclick="glow1()" id="MCDA" name="MCDA" type="button">MCDA</button>
+                    <button class="glow-button" onclick="glow2()" id="DCDA" name="DCDA" type="button">DCDA</button>
+                </div>
+                <div class="col">
+                    <label for="week">Week</label>
+                    <br>
+                    <input name="week" id="week" type="number" required>
+                </div>
+                <div class="col">
+                    <label for="weight">Weight</label>
+                    <br>
+                    <input name="weight" id="weight" type="number" required>
+                </div>
+            </div>
+            <br>
+            <br>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+{% endblock %}
