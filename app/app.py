@@ -8,6 +8,11 @@ import shutil
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
+
+# Set the font
+rcParams['font.family'] = 'Times New Roman'
+rcParams['font.size'] = 25
 
 # create an instance of the Flask class, with the name of the running application and the paths for the static files and templates
 app = Flask(__name__, static_folder='static', template_folder="templates")
@@ -33,30 +38,68 @@ def plot_gaussian(df, weight, save_path, title="Gaussian Distribution"):
     mean, std = df["50"], df["Std"]
 
     # Generate x values
-    x = np.linspace(mean - 3 * std, mean + 3 * std, 1000)
+    x = np.linspace(mean - 3 * std, mean + 3 * std, 100)
 
     # Compute the corresponding y values using the Gaussian function
     y = [gaussian(x_i, mean, std) for x_i in x]
 
     # Plot the Gaussian distribution
-    plt.figure(figsize=(15, 12))
-    plt.plot(x, y, color="darkturquoise")
-    plt.title(title)
-    plt.xlabel("Weight")
-    plt.ylabel("Probability Density")
-    plt.grid(True)
+    fig, ax = plt.subplots(figsize=(15, 12), facecolor='none')
+    ax.plot(x, y, color="darkturquoise", linewidth=4)
+    ax.set_title(title)
+    ax.set_xlabel("Weight")
+    ax.set_ylabel("Probability Density")
 
     # Plot the percentiles bar
     x_ticks = ['5%', '10%', '50%', '90%', '95%']
     x_values = [float(val) for val in list(df.iloc[0][['5', '10', '50', '90', '95']])]
-    y_values = [gaussian(x_i, mean, std)[0] for x_i in x_values]
-    plt.bar(x_values, y_values, color='salmon', width=0.6)
-    plt.xticks(x_values, x_ticks, rotation=45)
+    try:
+        y_values = [gaussian(x_i, mean, std)[0] for x_i in x_values]
+    except:
+        y_values = [gaussian(x_i, mean, std).iloc[0] for x_i in x_values]
+    ax.bar(x_values, y_values, color='salmon', width=3 * std / 100)
+    ax.set_xticks(x_values, x_ticks, rotation=45)
 
     # Plot the weight as a point
-    plt.scatter(weight, gaussian(weight, mean, std), color="dodgerblue", label="Your Weight")
-    plt.legend()
+    ax.scatter(weight, gaussian(weight, mean, std), color="dodgerblue", label="Your Weight", s=200)
+    ax.legend()
 
+    plt.savefig(save_path)
+
+
+def plot_trend(mcda, week, weight, save_path, title="Trend Line"):
+    # Find the row of details for each week
+    dfs = []
+    for w in week:
+        df_w = get_values(mcda=mcda, week=w)
+        dfs.append(df_w)
+    # Concatenate the dataframes
+    df = pd.concat(dfs)
+
+    # Set colors
+    colors = ["magenta", "purple", "darkturquoise", "orangered", "red"]
+    our_color = "darkorange"
+
+    # Set the percentage values
+    pers = ['5', '10', '50', '90', '95']
+
+    # Set the figure
+    fig, ax = plt.subplots(figsize=(15, 12), facecolor='none')
+
+    # Plot the trend lines
+    for i in range(len(colors)):
+        ax.plot(week, df[pers[i]], color=colors[i], label=f"{pers[i]}%", linewidth=2)
+
+    # Plot the weight
+    ax.plot(week, weight, color=our_color, label="Your Weight", linewidth=4)
+
+    # Set the labels
+    ax.set_title(title)
+    ax.set_xlabel("Week")
+    ax.set_ylabel("Weight")
+    ax.legend()
+
+    # Save the figure
     plt.savefig(save_path)
 
 
@@ -95,6 +138,7 @@ def clean_old_files():
             # Time is older than an hour
             if time.time() - float(file) > 3600:
                 shutil.rmtree(join("static", file))
+                print("Deleted:", file)
 
 
 @app.route('/process_form', methods=['POST', 'GET'])
@@ -127,12 +171,12 @@ def process_form():
         week_df = pd.read_csv(join(folder_path, "week.csv"))
         if week_df.shape[1] != 1:
             return render_template("index.html", error="Week file should have only one column.")
-        week = list(week_df)
+        week = list(week_df.iloc[:, 0])
     else:
         week = float(week)
 
     # Get the weight
-    weight = float(request.form.get('weight'))
+    weight = request.form.get('weight')
     weight_file = request.files['weight_file']
 
     # Check input validity
@@ -146,7 +190,7 @@ def process_form():
         weight_df = pd.read_csv(join(folder_path, "weight.csv"))
         if weight_df.shape[1] != 1:
             return render_template("index.html", error="Weight file should have only one column.")
-        weight = list(weight_df)
+        weight = list(weight_df.iloc[:, 0])
     else:
         weight = float(weight)
 
@@ -162,9 +206,14 @@ def process_form():
         df = get_values(mcda=mcda, week=week)
         plot_gaussian(df, weight, join(folder_path, "plot_1.png"))
     else:
+        # Covert dtype
+        week = [float(w) for w in week]
+        weight = [float(w) for w in weight]
         for i in range(len(week)):
             df = get_values(mcda=mcda, week=week[i])
-            plot_gaussian(df, weight[i], join(folder_path, f"plot_{i+1}.png"))
+            plot_gaussian(df, weight[i], join(folder_path, f"plot_{i + 1}.png"),
+                          title=f"Gaussian Distribution Week: {week[i]}")
+        plot_trend(mcda, week, weight, join(folder_path, "plot_trend.png"))
 
     result_files = [join(folder_path, file) for file in os.listdir(folder_path) if "plot" in file]
 

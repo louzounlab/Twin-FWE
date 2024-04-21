@@ -28,17 +28,6 @@
 
 {% block content %}
     <style>
-        .image-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 10px; /* Adjust the gap between images */
-        }
-
-        .image-grid img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
     </style>
     <script>
         function glow1() {
@@ -77,8 +66,8 @@
         <br>
         <div class="container row">
             {% for file in result_files %}
-                <div class="col-md-6 image-grid">
-                    <a href="{{ file }}" download>
+                <div class="col-md-4">
+                    <a href="{{ file }}" download class="center">
                         <img src="{{ file }}" height="300" width="400">
                     </a>
                 </div>
@@ -89,7 +78,7 @@
     <h4 style="color: red; text-align: center;">{{ error }}</h4>
     <br>
     <div class="text-center">
-        <h1>Name</h1>
+        <h1>Twin FWE</h1>
     </div>
     <div class="container text-center">
         <br>
@@ -116,7 +105,7 @@
                     <b style="font-size: 20px; color: blue;">OR</b>
                     <br>
                     <br>
-                    <input name="week_file" id="week_file" type="file" placeholder="column file" accept="csv">
+                    <input name="week_file" id="week_file" type="file" placeholder="column file" accept=".csv">
                 </div>
                 <div class="col">
                     <label for="weight">Weight</label>
@@ -128,13 +117,16 @@
                     <b style="font-size: 20px; color: blue;">OR</b>
                     <br>
                     <br>
-                    <input name="weight_file" id="weight_file" type="file" placeholder="column file" accept="csv">
+                    <input name="weight_file" id="weight_file" type="file" placeholder="column file" accept=".csv">
                 </div>
             </div>
             <br>
             <br>
 
             <button type="submit">Submit</button>
+            <br>
+            <br>
+            <br>
         </form>
     </div>
 {% endblock %}
