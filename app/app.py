@@ -53,6 +53,7 @@ def plot_gaussian(df, weight, save_path, title="Gaussian Distribution"):
     # Plot the percentiles bar
     x_ticks = ['5%', '10%', '50%', '90%', '95%']
     x_values = [float(val) for val in list(df.iloc[0][['5', '10', '50', '90', '95']])]
+    x_ticks = [x_ticks[i] + f"\n{x_values[i]:.2f})" for i in range(len(x_values))]
     try:
         y_values = [gaussian(x_i, mean, std)[0] for x_i in x_values]
     except:
@@ -204,7 +205,7 @@ def process_form():
     if type(week) == float:
         # Get the values of weights
         df = get_values(mcda=mcda, week=week)
-        plot_gaussian(df, weight, join(folder_path, "plot_1.png"))
+        plot_gaussian(df, weight, join(folder_path, "plot_1.png"),  title=f"Gaussian Distribution Week: {week}")
     else:
         # Covert dtype
         week = [float(w) for w in week]
