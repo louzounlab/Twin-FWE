@@ -51,18 +51,20 @@ def plot_gaussian(df, weight, save_path, title="Gaussian Distribution"):
     ax.set_ylabel("Probability Density")
 
     # Plot the percentiles bar
-    x_ticks = ['5%', '10%', '50%', '90%', '95%']
     x_values = [float(val) for val in list(df.iloc[0][['5', '10', '50', '90', '95']])]
-    x_ticks = [x_ticks[i] + f"\n{x_values[i]:.2f})" for i in range(len(x_values))]
     try:
         y_values = [gaussian(x_i, mean, std)[0] for x_i in x_values]
     except:
         y_values = [gaussian(x_i, mean, std).iloc[0] for x_i in x_values]
-    ax.bar(x_values, y_values, color='salmon', width=3 * std / 100)
-    ax.set_xticks(x_values, x_ticks, rotation=45)
+
+    width = 3 * std / 100
+    ax.bar(x_values[2], y_values[2], color='black', width=width)
+    ax.bar([x_values[1], x_values[3]], [y_values[1], y_values[3]], color='grey', width=width)
+    ax.bar([x_values[0], x_values[4]], [y_values[0], y_values[4]], color='lightgrey', width=width)
 
     # Plot the weight as a point
-    ax.scatter(weight, gaussian(weight, mean, std), color="dodgerblue", label="Your Weight", s=200)
+    ax.bar(weight, gaussian(weight, mean, std), color='dodgerblue', width=width)
+    ax.scatter(weight, gaussian(weight, mean, std), color="dodgerblue", label="Your Weight", s=300)
     ax.legend()
 
     plt.savefig(save_path)
@@ -78,8 +80,8 @@ def plot_trend(mcda, week, weight, save_path, title="Trend Line"):
     df = pd.concat(dfs)
 
     # Set colors
-    colors = ["magenta", "purple", "darkturquoise", "orangered", "red"]
-    our_color = "darkorange"
+    colors = ["lightgrey", "grey", "black", "grey", "lightgrey"]
+    our_color = "dodgerblue"
 
     # Set the percentage values
     pers = ['5', '10', '50', '90', '95']
@@ -90,6 +92,12 @@ def plot_trend(mcda, week, weight, save_path, title="Trend Line"):
     # Plot the trend lines
     for i in range(len(colors)):
         ax.plot(week, df[pers[i]], color=colors[i], label=f"{pers[i]}%", linewidth=2)
+
+    # Fill the gap between 5% and 95% with lightgrey
+    ax.fill_between(week, df['5'], df['95'], color='lightgrey', alpha=0.5)
+
+    # Fill the gap between 10% and 90% with grey
+    ax.fill_between(week, df['10'], df['90'], color='grey', alpha=0.5)
 
     # Plot the weight
     ax.plot(week, weight, color=our_color, label="Your Weight", linewidth=4)
