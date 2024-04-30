@@ -167,38 +167,52 @@ def process_form():
 
     # Get the week
     week = request.form.get('week')  # As number
-    week_file = request.files['week_file']  # As column
+
+    # Read the weeks from the form
+    total_weeks = ""
+    weeks_list = []
+    for i in range(1, 10 + 1):
+        week_i = request.form[f'week{i}']
+        if week_i:
+            weeks_list.append(float(week_i))
+            total_weeks += week_i
+
+    # Set up nicely in a dataframe
+    week_df = pd.DataFrame({"week": weeks_list})
 
     # Check input validity
-    if not week and not week_file:
+    if not week and not total_weeks:
         return render_template("index.html", error="Please enter a week or upload a week file.")
-    if week and week_file:
+    if week and total_weeks:
         return render_template("index.html", error="Please enter a week or upload a week file, not both.")
 
-    if week_file:
-        week_file.save(join(folder_path, "week.csv"))
-        week_df = pd.read_csv(join(folder_path, "week.csv"))
-        if week_df.shape[1] != 1:
-            return render_template("index.html", error="Week file should have only one column.")
+    if total_weeks:
         week = list(week_df.iloc[:, 0])
     else:
         week = float(week)
 
     # Get the weight
     weight = request.form.get('weight')
-    weight_file = request.files['weight_file']
+
+    # Read the weights from the form
+    total_weights = ""
+    weight_list = []
+    for i in range(1, 10 + 1):
+        weight_i = request.form[f'weight{i}']
+        if weight_i:
+            weight_list.append(float(weight_i))
+            total_weights += weight_i
+
+    # Set up nicely in a dataframe
+    weight_df = pd.DataFrame({"weight": weight_list})
 
     # Check input validity
-    if not weight and not weight_file:
+    if not weight and not total_weights:
         return render_template("index.html", error="Please enter a weight or upload a weight file.")
-    if weight and weight_file:
+    if weight and total_weights:
         return render_template("index.html", error="Please enter a weight or upload a weight file, not both.")
 
-    if weight_file:
-        weight_file.save(join(folder_path, "weight.csv"))
-        weight_df = pd.read_csv(join(folder_path, "weight.csv"))
-        if weight_df.shape[1] != 1:
-            return render_template("index.html", error="Weight file should have only one column.")
+    if total_weights:
         weight = list(weight_df.iloc[:, 0])
     else:
         weight = float(weight)
@@ -210,10 +224,13 @@ def process_form():
     # Get the values
     mcda = 1 if cda_type == "MCDA" else 0
 
+    print(week_df)
+    print(weight_df)
+
     if type(week) == float:
         # Get the values of weights
         df = get_values(mcda=mcda, week=week)
-        plot_gaussian(df, weight, join(folder_path, "plot_1.png"),  title=f"Gaussian Distribution Week: {week}")
+        plot_gaussian(df, weight, join(folder_path, "plot_1.png"), title=f"Gaussian Distribution Week: {week}")
     else:
         # Covert dtype
         week = [float(w) for w in week]
