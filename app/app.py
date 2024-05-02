@@ -220,6 +220,11 @@ def process_form():
     # Check the data types of week and weight much
     if type(week) != type(weight):
         return render_template("index.html", error="Week and weight should have the same data type.")
+    try:
+        if week_df.shape[0] != weight_df.shape[0]:
+            return render_template("index.html", error="Week and weight should have the same number of rows.")
+    except:
+        pass
 
     # Get the values
     mcda = 1 if cda_type == "MCDA" else 0
