@@ -9,6 +9,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+import threading
+import gc
+from tqdm import tqdm
 
 # Set the font
 rcParams['font.family'] = 'Times New Roman'
@@ -33,7 +36,10 @@ def gaussian(x, mean, std):
     return 1 / (std * np.sqrt(2 * np.pi)) * np.exp(-(x - mean) ** 2 / (2 * std ** 2))
 
 
-def plot_gaussian(df, weight, save_path, title="Gaussian Distribution"):
+def plot_gaussian(mcda, week, weight, save_path, title=""):
+    # Get the values
+    df = get_values(mcda, week)
+
     # Mean and standard deviation
     mean, std = df["50"], df["Std"]
 
@@ -73,6 +79,10 @@ def plot_gaussian(df, weight, save_path, title="Gaussian Distribution"):
 def plot_trend(mcda, week, weight, save_path, title="Trend Line"):
     # Find the row of details for each week
     dfs = []
+
+    # Change the week and weight to list format
+    week, weight = list(week["week"]), list(weight["weight"])
+
     for w in week:
         df_w = get_values(mcda=mcda, week=w)
         dfs.append(df_w)
@@ -112,7 +122,7 @@ def plot_trend(mcda, week, weight, save_path, title="Trend Line"):
     plt.savefig(save_path)
 
 
-def get_values(mcda, week):
+def get_values(mcda: int, week: float):
     global df_original
     df = df_original.copy()
 
@@ -141,6 +151,7 @@ def get_values(mcda, week):
 
 
 def clean_old_files():
+    gc.collect()
     files = os.listdir("static")
     for file in files:
         if os.path.isdir(join("static", file)) and file != "bootstrap":
@@ -157,7 +168,10 @@ def process_form():
     # Read the form data
     cda_type = request.form.get('cda_type')
     if cda_type == "None":
-        return render_template("index.html", error="Please select a MCDA/DCDA")
+        return render_template("index.html", error="Please select a MCDA/DCDA", data=request.form)
+
+    # Set the value of MCDA
+    mcda = 1 if cda_type == "MCDA" else 0
 
     # Get request time
     request_time = str(time.time())
@@ -165,97 +179,131 @@ def process_form():
     # Create a folder of this time
     os.mkdir(folder_path)
 
-    # Get the week
-    week = request.form.get('week')  # As number
+    # Get the week as number
+    twin_1_week = request.form.get('week1')
+    twin_2_week = request.form.get('week2')
 
     # Read the weeks from the form
-    total_weeks = ""
-    weeks_list = []
-    for i in range(1, 10 + 1):
-        week_i = request.form[f'week{i}']
-        if week_i:
-            weeks_list.append(float(week_i))
-            total_weeks += week_i
+    weeks_list = [[], []]
+    for j in range(0, 1 + 1):
+        for i in range(1, 10 + 1):
+            weekj_i = request.form.get(f'week{j + 1}_{i}')
+            if weekj_i:
+                weeks_list[j].append(float(weekj_i))
 
     # Set up nicely in a dataframe
-    week_df = pd.DataFrame({"week": weeks_list})
+    week_df_twin_1 = pd.DataFrame({"week": weeks_list[0]})
+    week_df_twin_2 = pd.DataFrame({"week": weeks_list[1]})
 
-    # Check input validity
-    if not week and not total_weeks:
-        return render_template("index.html", error="Please enter a week or upload a week file.")
-    if week and total_weeks:
-        return render_template("index.html", error="Please enter a week or upload a week file, not both.")
+    # Check there was an input
+    if week_df_twin_1.shape[0] == 0 and not twin_1_week:
+        return render_template("index.html",
+                               error="Please input at least one week for twin 1",
+                               data=request.form)
+    if week_df_twin_2.shape[0] == 0 and not twin_2_week:
+        return render_template("index.html",
+                               error="Please input at least one week for twin 2",
+                               data=request.form)
 
-    if total_weeks:
-        week = list(week_df.iloc[:, 0])
+    # Check which inputs to use
+    if week_df_twin_1.shape[0] > 0:
+        week_twin_1 = week_df_twin_1
     else:
-        week = float(week)
+        week_twin_1 = float(twin_1_week)
+    if week_df_twin_2.shape[0] > 0:
+        week_twin_2 = week_df_twin_2
+    else:
+        week_twin_2 = float(twin_2_week)
 
     # Get the weight
-    weight = request.form.get('weight')
+    twin_1_weight = request.form.get('weight1')
+    twin_2_weight = request.form.get('weight2')
 
-    # Read the weights from the form
-    total_weights = ""
-    weight_list = []
-    for i in range(1, 10 + 1):
-        weight_i = request.form[f'weight{i}']
-        if weight_i:
-            weight_list.append(float(weight_i))
-            total_weights += weight_i
+    # Read the weeks from the form
+    weights_list = [[], []]
+    for j in range(0, 1 + 1):
+        for i in range(1, 10 + 1):
+            weightj_i = request.form.get(f'weight{j + 1}_{i}')
+            if weightj_i:
+                weights_list[j].append(float(weightj_i))
 
     # Set up nicely in a dataframe
-    weight_df = pd.DataFrame({"weight": weight_list})
+    weight_df_twin_1 = pd.DataFrame({"weight": weights_list[0]})
+    weight_df_twin_2 = pd.DataFrame({"weight": weights_list[1]})
+
+    if weight_df_twin_1.shape[0] == 0 and not twin_1_weight:
+        return render_template("index.html",
+                               error="Please input at least one weight for twin 1",
+                               data=request.form)
+    if weight_df_twin_2.shape[0] == 0 and not twin_2_weight:
+        return render_template("index.html",
+                               error="Please input at least one weight for twin 2",
+                               data=request.form)
+
+    # Check which inputs to use
+    if weight_df_twin_1.shape[0] > 0:
+        weight_twin_1 = weight_df_twin_1
+    else:
+        weight_twin_1 = float(twin_1_weight)
+    if weight_df_twin_2.shape[0] > 0:
+        weight_twin_2 = weight_df_twin_2
+    else:
+        weight_twin_2 = float(twin_2_weight)
 
     # Check input validity
-    if not weight and not total_weights:
-        return render_template("index.html", error="Please enter a weight or upload a weight file.")
-    if weight and total_weights:
-        return render_template("index.html", error="Please enter a weight or upload a weight file, not both.")
+    if type(week_twin_1) != type(weight_twin_1) or type(week_twin_2) != type(weight_twin_2):
+        return render_template("index.html",
+                               error="Mismatch between amount of values for weeks and weights",
+                               data=request.form)
 
-    if total_weights:
-        weight = list(weight_df.iloc[:, 0])
+    # Divide to cases
+    if type(week_twin_1) == float:
+        plot_gaussian(mcda, week_twin_1, weight_twin_1,
+                      join(folder_path, "gaussian_twin_1.png"),
+                      f"Week {week_twin_1}")
+    else:  # Week of twin 1 is a dataframe
+        for i in range(week_twin_1.shape[0]):
+            plot_gaussian(mcda, float(week_twin_1.iloc[i].week), weight_twin_1.iloc[i].weight,
+                          join(folder_path, f"gaussian_twin_1_{i}.png"),
+                          f"Week {int(week_twin_1.iloc[i].week)}")
+
+        # Add trend line
+        if week_twin_1.shape[0] > 1:
+            plot_trend(mcda, week_twin_1, weight_twin_1, join(folder_path, "trend_line_twin_1.png"))
+
+    # Do the same for twin 2
+    if type(week_twin_2) == float:
+        plot_gaussian(mcda, week_twin_2, weight_twin_2,
+                      join(folder_path, "gaussian_twin_2.png"),
+                      f"Week {week_twin_2}")
     else:
-        weight = float(weight)
+        for i in range(week_twin_2.shape[0]):
+            plot_gaussian(mcda, float(week_twin_2.iloc[i].week), weight_twin_2.iloc[i].weight,
+                          join(folder_path, f"gaussian_twin_2_{i}.png"),
+                          f"Week {int(week_twin_2.iloc[i].week)}")
+        # Add trend line
+        if week_twin_2.shape[0] > 1:
+            plot_trend(mcda, week_twin_2, weight_twin_2, join(folder_path, "trend_line_twin_2.png"))
 
-    # Check the data types of week and weight much
-    if type(week) != type(weight):
-        return render_template("index.html", error="Week and weight should have the same data type.")
-    try:
-        if week_df.shape[0] != weight_df.shape[0]:
-            return render_template("index.html", error="Week and weight should have the same number of rows.")
-    except:
-        pass
+    # Get the files
+    result_files = [join(folder_path, file) for file in os.listdir(folder_path) if ".png" in file]
 
-    # Get the values
-    mcda = 1 if cda_type == "MCDA" else 0
+    # Split into contents
+    twin_1_trend = [file for file in result_files if "trend" in file and "twin_1" in file][0]
+    twin_2_trend = [file for file in result_files if "trend" in file and "twin_2" in file][0]
+    twin_1_gaussians = [file for file in result_files if "gaussian" in file and "twin_1" in file]
+    twin_2_gaussians = [file for file in result_files if "gaussian" in file and "twin_2" in file]
 
-    print(week_df)
-    print(weight_df)
-
-    if type(week) == float:
-        # Get the values of weights
-        df = get_values(mcda=mcda, week=week)
-        plot_gaussian(df, weight, join(folder_path, "plot_1.png"), title=f"Gaussian Distribution Week: {week}")
-    else:
-        # Covert dtype
-        week = [float(w) for w in week]
-        weight = [float(w) for w in weight]
-        for i in range(len(week)):
-            df = get_values(mcda=mcda, week=week[i])
-            plot_gaussian(df, weight[i], join(folder_path, f"plot_{i + 1}.png"),
-                          title=f"Gaussian Distribution Week: {week[i]}")
-        plot_trend(mcda, week, weight, join(folder_path, "plot_trend.png"))
-
-    result_files = [join(folder_path, file) for file in os.listdir(folder_path) if "plot" in file]
-
-    return render_template("index.html", result_files=result_files)
+    return render_template("index.html", data=request.form, results=True,
+                           twin_1_trend=twin_1_trend, twin_2_trend=twin_2_trend,
+                           twin_1_gaussians=twin_1_gaussians, twin_2_gaussians=twin_2_gaussians)
 
 
 @app.route('/', methods=['GET'])
 @app.route('/Home', methods=['GET'])
 def home():
     clean_old_files()
-    return render_template("index.html", active="Home")
+    return render_template("index.html", active="Home", data={})
 
 
 @app.route('/Example', methods=['GET'])

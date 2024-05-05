@@ -3,6 +3,10 @@
 {% block head %}
     <style>
 
+        .hidden {
+            display: none;
+        }
+
         .glow-button {
             background-color: #3498db; /* Default background color */
             color: #ffffff; /* Default text color */
@@ -59,19 +63,70 @@
             // Update the value of the hidden input with the id/name of the selected button
             document.getElementById('cda_type').value = "DCDA";
         }
+
+        function toggleAdvanceResults1() {
+            const x = document.getElementById("advance_results_1");
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+        }
+
+        function toggleAdvanceResults2() {
+            const x = document.getElementById("advance_results_2");
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+        }
     </script>
 
-    {% if result_files %}
+    {% if results %}
         <br>
         <br>
-        <div class="container row">
-            {% for file in result_files %}
-                <div class="col-md-4">
-                    <a href="{{ file }}" download class="center">
-                        <img src="{{ file }}" height="300" width="400">
+        <div class="container row justify-content-evenly">
+            <div class="col center text-center">
+                <h3>Twin 1</h3>
+                <br>
+                <br>
+                <div>
+                    <a href="{{ twin_1_trend }}" download class="center">
+                        <img src="{{ twin_1_trend }}" height="300" width="400">
                     </a>
                 </div>
-            {% endfor %}
+                <br>
+                <button type="button" onclick="toggleAdvanceResults1()">Advance Results</button>
+                <br>
+                <div class="container center text-center hidden" id="advance_results_1">
+                    {% for file in twin_1_gaussians %}
+                        <a href="{{ file }}" download class="center">
+                            <img src="{{ file }}" height="300" width="400">
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col center text-center">
+                <h3>Twin 2</h3>
+                <br>
+                <br>
+                <div>
+                    <a href="{{ twin_2_trend }}" download class="center">
+                        <img src="{{ twin_2_trend }}" height="300" width="400">
+                    </a>
+                </div>
+                <br>
+                <button type="button" onclick="toggleAdvanceResults2()">Advance Results</button>
+                <br>
+                <div class="container hidden center text-center" id="advance_results_2">
+                    {% for file in twin_2_gaussians %}
+                        <a href="{{ file }}" download class="center">
+                            <img src="{{ file }}" height="300" width="400">
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
     {% endif %}
 
@@ -104,88 +159,88 @@
             <br>
             <div class="row">
                 <div class="col">
-                    <label for="week">Week</label>
+                    <label for="week1">Week</label>
                     <br>
                     <br>
-                    <input name="week" id="week" type="number" placeholder="">
+                    <input name="week1" id="week1" type="number" value="{{ data['week_1'] }}">
                     <br>
                     <br>
                     <b style="font-size: 20px; color: blue;">OR</b>
                     <br>
                     <br>
-                    <input name="week1" id="week1" type="number" placeholder=""><br>
-                    <input name="week2" id="week2" type="number" placeholder=""><br>
-                    <input name="week3" id="week3" type="number" placeholder=""><br>
-                    <input name="week4" id="week4" type="number" placeholder=""><br>
-                    <input name="week5" id="week5" type="number" placeholder=""><br>
-                    <input name="week6" id="week6" type="number" placeholder=""><br>
-                    <input name="week7" id="week7" type="number" placeholder=""><br>
-                    <input name="week8" id="week8" type="number" placeholder=""><br>
-                    <input name="week9" id="week9" type="number" placeholder=""><br>
-                    <input name="week10" id="week10" type="number" placeholder=""><br>
+                    <input name="week1_1" id="week1_1" type="number" value="{{ data['week1_1'] }}"><br>
+                    <input name="week1_2" id="week1_2" type="number" value="{{ data['week1_2'] }}"><br>
+                    <input name="week1_3" id="week1_3" type="number" value="{{ data['week1_3'] }}"><br>
+                    <input name="week1_4" id="week1_4" type="number" value="{{ data['week1_4'] }}"><br>
+                    <input name="week1_5" id="week1_5" type="number" value="{{ data['week1_5'] }}"><br>
+                    <input name="week1_6" id="week1_6" type="number" value="{{ data['week1_6'] }}"><br>
+                    <input name="week1_7" id="week1_7" type="number" value="{{ data['week1_7'] }}"><br>
+                    <input name="week1_8" id="week1_8" type="number" value="{{ data['week1_8'] }}"><br>
+                    <input name="week1_9" id="week1_9" type="number" value="{{ data['week1_9'] }}"><br>
+                    <input name="week1_10" id="week1_10" type="number" value="{{ data['week1_10'] }}"><br>
                 </div>
                 <div class="col">
-                    <label for="weight">Weight</label>
+                    <label for="weight1">Weight</label>
                     <br>
                     <br>
-                    <input name="weight" id="weight" type="number" placeholder="">
+                    <input name="weight1" id="weight1" type="number" value="{{ data['weight_1'] }}">
                     <br>
                     <br>
                     <b style="font-size: 20px; color: blue;">OR</b>
                     <br>
                     <br>
-                    <input name="weight1" id="weight1" type="number" placeholder=""><br>
-                    <input name="weight2" id="weight2" type="number" placeholder=""><br>
-                    <input name="weight3" id="weight3" type="number" placeholder=""><br>
-                    <input name="weight4" id="weight4" type="number" placeholder=""><br>
-                    <input name="weight5" id="weight5" type="number" placeholder=""><br>
-                    <input name="weight6" id="weight6" type="number" placeholder=""><br>
-                    <input name="weight7" id="weight7" type="number" placeholder=""><br>
-                    <input name="weight8" id="weight8" type="number" placeholder=""><br>
-                    <input name="weight9" id="weight9" type="number" placeholder=""><br>
-                    <input name="weight10" id="weight10" type="number" placeholder=""><br>
+                    <input name="weight1_1" id="weight1_1" type="number" value="{{ data['weight1_1'] }}"><br>
+                    <input name="weight1_2" id="weight1_2" type="number" value="{{ data['weight1_2'] }}"><br>
+                    <input name="weight1_3" id="weight1_3" type="number" value="{{ data['weight1_3'] }}"><br>
+                    <input name="weight1_4" id="weight1_4" type="number" value="{{ data['weight1_4'] }}"><br>
+                    <input name="weight1_5" id="weight1_5" type="number" value="{{ data['weight1_5'] }}"><br>
+                    <input name="weight1_6" id="weight1_6" type="number" value="{{ data['weight1_6'] }}"><br>
+                    <input name="weight1_7" id="weight1_7" type="number" value="{{ data['weight1_7'] }}"><br>
+                    <input name="weight1_8" id="weight1_8" type="number" value="{{ data['weight1_8'] }}"><br>
+                    <input name="weight1_9" id="weight1_9" type="number" value="{{ data['weight1_9'] }}"><br>
+                    <input name="weight1_10" id="weight1_10" type="number" value="{{ data['weight1_10'] }}"><br>
                 </div>
                 <div class="col">
-                    <label for="week">Week</label>
+                    <label for="week2">Week</label>
                     <br>
                     <br>
-                    <input name="week" id="week" type="number" placeholder="">
+                    <input name="week2" id="week2" type="number" value="{{ data['week2'] }}">
                     <br>
                     <br>
                     <b style="font-size: 20px; color: blue;">OR</b>
                     <br>
                     <br>
-                    <input name="week1" id="week1" type="number" placeholder=""><br>
-                    <input name="week2" id="week2" type="number" placeholder=""><br>
-                    <input name="week3" id="week3" type="number" placeholder=""><br>
-                    <input name="week4" id="week4" type="number" placeholder=""><br>
-                    <input name="week5" id="week5" type="number" placeholder=""><br>
-                    <input name="week6" id="week6" type="number" placeholder=""><br>
-                    <input name="week7" id="week7" type="number" placeholder=""><br>
-                    <input name="week8" id="week8" type="number" placeholder=""><br>
-                    <input name="week9" id="week9" type="number" placeholder=""><br>
-                    <input name="week10" id="week10" type="number" placeholder=""><br>
+                    <input name="week2_1" id="week2_1" type="number" value="{{ data['week2_1'] }}"><br>
+                    <input name="week2_2" id="week2_2" type="number" value="{{ data['week2_2'] }}"><br>
+                    <input name="week2_3" id="week2_3" type="number" value="{{ data['week2_3'] }}"><br>
+                    <input name="week2_4" id="week2_4" type="number" value="{{ data['week2_4'] }}"><br>
+                    <input name="week2_5" id="week2_5" type="number" value="{{ data['week2_5'] }}"><br>
+                    <input name="week2_6" id="week2_6" type="number" value="{{ data['week2_6'] }}"><br>
+                    <input name="week2_7" id="week2_7" type="number" value="{{ data['week2_7'] }}"><br>
+                    <input name="week2_8" id="week2_8" type="number" value="{{ data['week2_8'] }}"><br>
+                    <input name="week2_9" id="week2_9" type="number" value="{{ data['week2_9'] }}"><br>
+                    <input name="week2_10" id="week2_10" type="number" value="{{ data['week2_10'] }}"><br>
                 </div>
                 <div class="col">
-                    <label for="weight">Weight</label>
+                    <label for="weight2">Weight</label>
                     <br>
                     <br>
-                    <input name="weight" id="weight" type="number" placeholder="">
+                    <input name="weight2" id="weight2" type="number" value="{{ data['weight_2'] }}">
                     <br>
                     <br>
                     <b style="font-size: 20px; color: blue;">OR</b>
                     <br>
                     <br>
-                    <input name="weight1" id="weight1" type="number" placeholder=""><br>
-                    <input name="weight2" id="weight2" type="number" placeholder=""><br>
-                    <input name="weight3" id="weight3" type="number" placeholder=""><br>
-                    <input name="weight4" id="weight4" type="number" placeholder=""><br>
-                    <input name="weight5" id="weight5" type="number" placeholder=""><br>
-                    <input name="weight6" id="weight6" type="number" placeholder=""><br>
-                    <input name="weight7" id="weight7" type="number" placeholder=""><br>
-                    <input name="weight8" id="weight8" type="number" placeholder=""><br>
-                    <input name="weight9" id="weight9" type="number" placeholder=""><br>
-                    <input name="weight10" id="weight10" type="number" placeholder=""><br>
+                    <input name="weight2_1" id="weight2_1" type="number" value="{{ data['weight2_1'] }}"><br>
+                    <input name="weight2_2" id="weight2_2" type="number" value="{{ data['weight2_2'] }}"><br>
+                    <input name="weight2_3" id="weight2_3" type="number" value="{{ data['weight2_3'] }}"><br>
+                    <input name="weight2_4" id="weight2_4" type="number" value="{{ data['weight2_4'] }}"><br>
+                    <input name="weight2_5" id="weight2_5" type="number" value="{{ data['weight2_5'] }}"><br>
+                    <input name="weight2_6" id="weight2_6" type="number" value="{{ data['weight2_6'] }}"><br>
+                    <input name="weight2_7" id="weight2_7" type="number" value="{{ data['weight2_7'] }}"><br>
+                    <input name="weight2_8" id="weight2_8" type="number" value="{{ data['weight2_8'] }}"><br>
+                    <input name="weight2_9" id="weight2_9" type="number" value="{{ data['weight2_9'] }}"><br>
+                    <input name="weight2_10" id="weight2_10" type="number" value="{{ data['weight2_10'] }}"><br>
                 </div>
             </div>
             <br>
