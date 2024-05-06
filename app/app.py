@@ -87,7 +87,7 @@ def plot_gaussian(mcda, week, weight, save_path, title=""):
     # Calculate the percentage below the weight
     percentage = percentage_below_x(weight, mean, std)
 
-    return percentage
+    return percentage[0]
 
 
 def plot_trend(mcda, week, weight, save_path, title="Trend Line"):
