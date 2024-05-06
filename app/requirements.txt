@@ -1,4 +1,4 @@
 flask
 pandas
 matplotlib
-tqdm
+scipy

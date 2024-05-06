@@ -2,16 +2,15 @@ import datetime
 import secrets
 import os
 from os.path import join
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import time
 import shutil
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
-import threading
 import gc
-from tqdm import tqdm
+from scipy.stats import norm
 
 # Set the font
 rcParams['font.family'] = 'Times New Roman'
@@ -30,6 +29,16 @@ app.config["PERMANENT_SESSION_LIFETIME"] = datetime.timedelta(hours=1)
 app.config["SECRET_KEY"] = secrets.token_hex()
 
 df_original = pd.read_csv(join("static", "data.csv"))
+
+
+def percentage_below_x(x, mean, std):
+    # Calculate the z-score
+    z = (x - mean) / std
+
+    # Calculate the percentage using the CDF
+    percentage = norm.cdf(z) * 100
+
+    return percentage
 
 
 def gaussian(x, mean, std):
@@ -74,6 +83,11 @@ def plot_gaussian(mcda, week, weight, save_path, title=""):
     ax.legend()
 
     plt.savefig(save_path)
+
+    # Calculate the percentage below the weight
+    percentage = percentage_below_x(weight, mean, std)
+
+    return percentage
 
 
 def plot_trend(mcda, week, weight, save_path, title="Trend Line"):
@@ -183,13 +197,30 @@ def process_form():
     twin_1_week = request.form.get('week1')
     twin_2_week = request.form.get('week2')
 
+    # Fix the days
+    try:
+        twin_1_week = float(twin_1_week)
+        days = (float(twin_1_week) - float(int(twin_1_week))) * 10 * (1 / 7)
+        twin_1_week = float(int(twin_1_week)) + days
+    except:
+        pass
+    try:
+        twin_2_week = float(twin_2_week)
+        days = (float(twin_2_week) - float(int(twin_2_week))) * 10 * (1 / 7)
+        twin_2_week = float(int(twin_2_week)) + days
+    except:
+        pass
+
     # Read the weeks from the form
     weeks_list = [[], []]
     for j in range(0, 1 + 1):
         for i in range(1, 10 + 1):
             weekj_i = request.form.get(f'week{j + 1}_{i}')
             if weekj_i:
-                weeks_list[j].append(float(weekj_i))
+                weekj_i = float(weekj_i)
+                days = (float(weekj_i) - float(int(weekj_i))) * 10 * (1 / 7)
+                weekj_i = float(int(weekj_i)) + days
+                weeks_list[j].append(weekj_i)
 
     # Set up nicely in a dataframe
     week_df_twin_1 = pd.DataFrame({"week": weeks_list[0]})
@@ -258,14 +289,15 @@ def process_form():
 
     # Divide to cases
     if type(week_twin_1) == float:
-        plot_gaussian(mcda, week_twin_1, weight_twin_1,
-                      join(folder_path, "gaussian_twin_1.png"),
-                      f"Week {week_twin_1}")
+        twin_1_percentage = [plot_gaussian(mcda, week_twin_1, weight_twin_1,
+                                           join(folder_path, "gaussian_twin_1.png"),
+                                           f"Week {week_twin_1}")]
     else:  # Week of twin 1 is a dataframe
+        twin_1_percentage = []
         for i in range(week_twin_1.shape[0]):
-            plot_gaussian(mcda, float(week_twin_1.iloc[i].week), weight_twin_1.iloc[i].weight,
-                          join(folder_path, f"gaussian_twin_1_{i}.png"),
-                          f"Week {int(week_twin_1.iloc[i].week)}")
+            twin_1_percentage.append(plot_gaussian(mcda, float(week_twin_1.iloc[i].week), weight_twin_1.iloc[i].weight,
+                                                   join(folder_path, f"gaussian_twin_1_{i}.png"),
+                                                   f"Week {int(week_twin_1.iloc[i].week)}"))
 
         # Add trend line
         if week_twin_1.shape[0] > 1:
@@ -273,14 +305,15 @@ def process_form():
 
     # Do the same for twin 2
     if type(week_twin_2) == float:
-        plot_gaussian(mcda, week_twin_2, weight_twin_2,
-                      join(folder_path, "gaussian_twin_2.png"),
-                      f"Week {week_twin_2}")
+        twin_2_percentage = [plot_gaussian(mcda, week_twin_2, weight_twin_2,
+                                           join(folder_path, "gaussian_twin_2.png"),
+                                           f"Week {week_twin_2}")]
     else:
+        twin_2_percentage = []
         for i in range(week_twin_2.shape[0]):
-            plot_gaussian(mcda, float(week_twin_2.iloc[i].week), weight_twin_2.iloc[i].weight,
-                          join(folder_path, f"gaussian_twin_2_{i}.png"),
-                          f"Week {int(week_twin_2.iloc[i].week)}")
+            twin_2_percentage.append(plot_gaussian(mcda, float(week_twin_2.iloc[i].week), weight_twin_2.iloc[i].weight,
+                                                   join(folder_path, f"gaussian_twin_2_{i}.png"),
+                                                   f"Week {int(week_twin_2.iloc[i].week)}"))
         # Add trend line
         if week_twin_2.shape[0] > 1:
             plot_trend(mcda, week_twin_2, weight_twin_2, join(folder_path, "trend_line_twin_2.png"))
@@ -294,26 +327,42 @@ def process_form():
     twin_1_gaussians = [file for file in result_files if "gaussian" in file and "twin_1" in file]
     twin_2_gaussians = [file for file in result_files if "gaussian" in file and "twin_2" in file]
 
-    return render_template("index.html", data=request.form, results=True,
+    # Create df for percentage
+    try:
+        twin_1_percentage = pd.DataFrame({"Week": week_twin_1["week"], "Percentage": twin_1_percentage})
+    except:
+        twin_1_percentage = pd.DataFrame({"Week": [week_twin_1], "Percentage": twin_1_percentage})
+    try:
+        twin_2_percentage = pd.DataFrame({"Week": week_twin_2["week"], "Percentage": twin_2_percentage})
+    except:
+        twin_2_percentage = pd.DataFrame({"Week": [week_twin_2], "Percentage": twin_2_percentage})
+
+    # Save as csv
+    twin_1_percentage.to_csv(join(folder_path, "twin_1_percentage.csv"), index=False)
+    twin_2_percentage.to_csv(join(folder_path, "twin_2_percentage.csv"), index=False)
+
+    return render_template('index.html',  data=request.form, results=True,
                            twin_1_trend=twin_1_trend, twin_2_trend=twin_2_trend,
-                           twin_1_gaussians=twin_1_gaussians, twin_2_gaussians=twin_2_gaussians)
+                           twin_1_gaussians=twin_1_gaussians, twin_2_gaussians=twin_2_gaussians,
+                           twin_1_percentage=join(folder_path, "twin_1_percentage.csv"),
+                           twin_2_percentage=join(folder_path, "twin_2_percentage.csv"))
 
 
 @app.route('/', methods=['GET'])
 @app.route('/Home', methods=['GET'])
 def home():
     clean_old_files()
-    return render_template("index.html", active="Home", data={})
+    return render_template("index.html", data={})
 
 
 @app.route('/Example', methods=['GET'])
 def example():
-    return render_template("example.html", active="Example")
+    return render_template("example.html")
 
 
 @app.route('/About', methods=['GET'])
 def about():
-    return render_template("about.html", active="About")
+    return render_template("about.html")
 
 
 if __name__ == "__main__":

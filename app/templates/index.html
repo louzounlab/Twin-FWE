@@ -97,7 +97,7 @@
                     </a>
                 </div>
                 <br>
-                <button type="button" onclick="toggleAdvanceResults1()">Advance Results</button>
+                <button type="button" onclick="toggleAdvanceResults1()">Advanced Results</button>
                 <br>
                 <div class="container center text-center hidden" id="advance_results_1">
                     {% for file in twin_1_gaussians %}
@@ -106,6 +106,10 @@
                         </a>
                     {% endfor %}
                 </div>
+            <br>
+            <br>
+            <a href="{{ twin_1_percentage }}" download="{{ twin_1_percentage }}">Click here to download the percentages
+                results</a>
             </div>
             <div class="col center text-center">
                 <h3>Twin 2</h3>
@@ -117,7 +121,7 @@
                     </a>
                 </div>
                 <br>
-                <button type="button" onclick="toggleAdvanceResults2()">Advance Results</button>
+                <button type="button" onclick="toggleAdvanceResults2()">Advanced Results</button>
                 <br>
                 <div class="container hidden center text-center" id="advance_results_2">
                     {% for file in twin_2_gaussians %}
@@ -126,6 +130,10 @@
                         </a>
                     {% endfor %}
                 </div>
+                <br>
+                <br>
+                <a href="{{ twin_2_percentage }}" download="{{ twin_2_percentage }}">Click here to download the
+                    percentages results</a>
             </div>
         </div>
     {% endif %}
