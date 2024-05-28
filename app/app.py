@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import gc
 from scipy.stats import norm
+import pickle
 
 # Set the font
 rcParams['font.family'] = 'Times New Roman'
@@ -45,7 +46,7 @@ def gaussian(x, mean, std):
     return 1 / (std * np.sqrt(2 * np.pi)) * np.exp(-(x - mean) ** 2 / (2 * std ** 2))
 
 
-def plot_gaussian(mcda, week, weight, save_path, title=""):
+def plot_gaussian(mcda, week, weight1, weight2, save_path, title=""):
     # Get the values
     df = get_values(mcda, week)
 
@@ -78,24 +79,37 @@ def plot_gaussian(mcda, week, weight, save_path, title=""):
     ax.bar([x_values[0], x_values[4]], [y_values[0], y_values[4]], color='lightgrey', width=width)
 
     # Plot the weight as a point
-    ax.bar(weight, gaussian(weight, mean, std), color='dodgerblue', width=width)
-    ax.scatter(weight, gaussian(weight, mean, std), color="dodgerblue", label="Your Weight", s=300)
+    if weight1:
+        ax.bar(weight1, gaussian(weight1, mean, std), color='dodgerblue', width=width)
+        ax.scatter(weight1, gaussian(weight1, mean, std), color="dodgerblue", label="EFW1", s=400)
+    if weight2:
+        ax.bar(weight2, gaussian(weight2, mean, std), color='hotpink', width=width)
+        ax.scatter(weight2, gaussian(weight2, mean, std), color="hotpink", label="EFW2", s=400)
     ax.legend()
 
     plt.savefig(save_path)
 
     # Calculate the percentage below the weight
-    percentage = percentage_below_x(weight, mean, std)
+    percentage1, percentage2 = [None], [None]
+    if weight1:
+        percentage1 = percentage_below_x(weight1, mean, std)
+    if weight2:
+        percentage2 = percentage_below_x(weight2, mean, std)
 
-    return percentage[0]
+    return percentage1[0], percentage2[0]
 
 
-def plot_trend(mcda, week, weight, save_path, title="Trend Line"):
+def plot_trend(mcda, week, week1, week2, weight1, weight2, save_path, title="Trend Line", extend_by=1):
     # Find the row of details for each week
     dfs = []
 
     # Change the week and weight to list format
-    week, weight = list(week["week"]), list(weight["weight"])
+    try:
+        week, weight1, weight2 = list(week["week"]), list(weight1["weight"]), list(weight2["weight"])
+    except:
+        week, weight1, weight2 = list(week["week"]), weight1, weight2
+
+    week = [max(12, min(week) - extend_by)] + week + [min(36.5, max(week) + extend_by)]
 
     for w in week:
         df_w = get_values(mcda=mcda, week=w)
@@ -105,7 +119,6 @@ def plot_trend(mcda, week, weight, save_path, title="Trend Line"):
 
     # Set colors
     colors = ["lightgrey", "grey", "black", "grey", "lightgrey"]
-    our_color = "dodgerblue"
 
     # Set the percentage values
     pers = ['5', '10', '50', '90', '95']
@@ -124,7 +137,8 @@ def plot_trend(mcda, week, weight, save_path, title="Trend Line"):
     ax.fill_between(week, df['10'], df['90'], color='grey', alpha=0.5)
 
     # Plot the weight
-    ax.plot(week, weight, color=our_color, label="Your Weight", linewidth=4)
+    ax.plot(week1, weight1, color="dodgerblue", label="EFW1", linewidth=4)
+    ax.plot(week2, weight2, color='hotpink', label="EFW2", linewidth=4)
 
     # Set the labels
     ax.set_title(title)
@@ -179,10 +193,12 @@ def clean_old_files():
 def process_form():
     clean_old_files()
 
+    data = request.form
+
     # Read the form data
-    cda_type = request.form.get('cda_type')
+    cda_type = data.get('cda_type')
     if cda_type == "None":
-        return render_template("index.html", error="Please select a MCDA/DCDA", data=request.form)
+        return render_template("index.html", error="Please select a MCDA/DCDA", data=data)
 
     # Set the value of MCDA
     mcda = 1 if cda_type == "MCDA" else 0
@@ -193,159 +209,140 @@ def process_form():
     # Create a folder of this time
     os.mkdir(folder_path)
 
-    # Get the week as number
-    twin_1_week = request.form.get('week1')
-    twin_2_week = request.form.get('week2')
-
-    # Fix the days
-    try:
-        twin_1_week = float(twin_1_week)
-        days = (float(twin_1_week) - float(int(twin_1_week))) * 10 * (1 / 7)
-        twin_1_week = float(int(twin_1_week)) + days
-    except:
-        pass
-    try:
-        twin_2_week = float(twin_2_week)
-        days = (float(twin_2_week) - float(int(twin_2_week))) * 10 * (1 / 7)
-        twin_2_week = float(int(twin_2_week)) + days
-    except:
-        pass
-
     # Read the weeks from the form
-    weeks_list = [[], []]
-    for j in range(0, 1 + 1):
-        for i in range(1, 10 + 1):
-            weekj_i = request.form.get(f'week{j + 1}_{i}')
-            if weekj_i:
-                weekj_i = float(weekj_i)
-                days = (float(weekj_i) - float(int(weekj_i))) * 10 * (1 / 7)
-                weekj_i = float(int(weekj_i)) + days
-                weeks_list[j].append(weekj_i)
+    weeks_list = []
+    for i in range(1, 10 + 1):
+        weeki = data.get(f'week{i}')
+        if weeki:
+            weeki = int(weeki)
+        else:
+            continue
+        dayi = data.get(f'Day{i}')
+        if dayi:
+            dayi = int(dayi)
+            if weeki == 36:
+                dayi = min(dayi, 3)
+            weeki += dayi / 7
+        weeks_list.append(weeki)
 
     # Set up nicely in a dataframe
-    week_df_twin_1 = pd.DataFrame({"week": weeks_list[0]})
-    week_df_twin_2 = pd.DataFrame({"week": weeks_list[1]})
+    week_df = pd.DataFrame({"week": weeks_list})
 
     # Check there was an input
-    if week_df_twin_1.shape[0] == 0 and not twin_1_week:
+    if week_df.shape[0] == 0:
         return render_template("index.html",
-                               error="Please input at least one week for twin 1",
-                               data=request.form)
-    if week_df_twin_2.shape[0] == 0 and not twin_2_week:
-        return render_template("index.html",
-                               error="Please input at least one week for twin 2",
-                               data=request.form)
-
-    # Check which inputs to use
-    if week_df_twin_1.shape[0] > 0:
-        week_twin_1 = week_df_twin_1
-    else:
-        week_twin_1 = float(twin_1_week)
-    if week_df_twin_2.shape[0] > 0:
-        week_twin_2 = week_df_twin_2
-    else:
-        week_twin_2 = float(twin_2_week)
-
-    # Get the weight
-    twin_1_weight = request.form.get('weight1')
-    twin_2_weight = request.form.get('weight2')
+                               error="Please input at least one week.",
+                               data=data)
 
     # Read the weeks from the form
     weights_list = [[], []]
     for j in range(0, 1 + 1):
         for i in range(1, 10 + 1):
-            weightj_i = request.form.get(f'weight{j + 1}_{i}')
+            weightj_i = data.get(f'EFW{j + 1}_{i}')
             if weightj_i:
                 weights_list[j].append(float(weightj_i))
+            else:
+                weights_list[j].append(np.nan)
 
     # Set up nicely in a dataframe
     weight_df_twin_1 = pd.DataFrame({"weight": weights_list[0]})
     weight_df_twin_2 = pd.DataFrame({"weight": weights_list[1]})
 
-    if weight_df_twin_1.shape[0] == 0 and not twin_1_weight:
+    # Check insertion
+    if weight_df_twin_1.shape[0] == 0:
         return render_template("index.html",
-                               error="Please input at least one weight for twin 1",
-                               data=request.form)
-    if weight_df_twin_2.shape[0] == 0 and not twin_2_weight:
+                               error="Please input at least one weight for twin 1.",
+                               data=data)
+    if weight_df_twin_2.shape[0] == 0:
         return render_template("index.html",
-                               error="Please input at least one weight for twin 2",
-                               data=request.form)
+                               error="Please input at least one weight for twin 2.",
+                               data=data)
 
-    # Check which inputs to use
-    if weight_df_twin_1.shape[0] > 0:
-        weight_twin_1 = weight_df_twin_1
-    else:
-        weight_twin_1 = float(twin_1_weight)
-    if weight_df_twin_2.shape[0] > 0:
-        weight_twin_2 = weight_df_twin_2
-    else:
-        weight_twin_2 = float(twin_2_weight)
+    week_twin_1, week_twin_2 = week_df[~weight_df_twin_1["weight"].isna()], week_df[~weight_df_twin_2["weight"].isna()]
+    weight_df_twin_1.dropna(inplace=True)
+    weight_df_twin_2.dropna(inplace=True)
 
-    # Check input validity
-    if type(week_twin_1) != type(weight_twin_1) or type(week_twin_2) != type(weight_twin_2):
-        return render_template("index.html",
-                               error="Mismatch between amount of values for weeks and weights",
-                               data=request.form)
+    twin_1_percentage, twin_2_percentage = [], []
+    for i in range(week_df.shape[0]):
+        week = week_df.iloc[i].week
+        weight1, weight2 = None, None
+        if week in list(week_twin_2["week"]):
+            weight2 = weight_df_twin_2[week_twin_2["week"] == week].iloc[0].weight
+        if week in list(week_twin_1["week"]):
+            weight1 = weight_df_twin_1[week_twin_1["week"] == week].iloc[0].weight
+        percentage1, percentage2 = plot_gaussian(mcda=mcda, week=week,
+                                                 weight1=weight1, weight2=weight2,
+                                                 save_path=join(folder_path, f"gaussian_{week}.png"),
+                                                 title=f"Week {week}")
+        if percentage1:
+            twin_1_percentage.append(percentage1)
+        if percentage2:
+            twin_2_percentage.append(percentage2)
 
-    # Divide to cases
-    if type(week_twin_1) == float:
-        twin_1_percentage = [plot_gaussian(mcda, week_twin_1, weight_twin_1,
-                                           join(folder_path, "gaussian_twin_1.png"),
-                                           f"Week {week_twin_1}")]
-    else:  # Week of twin 1 is a dataframe
-        twin_1_percentage = []
-        for i in range(week_twin_1.shape[0]):
-            twin_1_percentage.append(plot_gaussian(mcda, float(week_twin_1.iloc[i].week), weight_twin_1.iloc[i].weight,
-                                                   join(folder_path, f"gaussian_twin_1_{i}.png"),
-                                                   f"Week {int(week_twin_1.iloc[i].week)}"))
-
-        # Add trend line
-        if week_twin_1.shape[0] > 1:
-            plot_trend(mcda, week_twin_1, weight_twin_1, join(folder_path, "trend_line_twin_1.png"))
-
-    # Do the same for twin 2
-    if type(week_twin_2) == float:
-        twin_2_percentage = [plot_gaussian(mcda, week_twin_2, weight_twin_2,
-                                           join(folder_path, "gaussian_twin_2.png"),
-                                           f"Week {week_twin_2}")]
-    else:
-        twin_2_percentage = []
-        for i in range(week_twin_2.shape[0]):
-            twin_2_percentage.append(plot_gaussian(mcda, float(week_twin_2.iloc[i].week), weight_twin_2.iloc[i].weight,
-                                                   join(folder_path, f"gaussian_twin_2_{i}.png"),
-                                                   f"Week {int(week_twin_2.iloc[i].week)}"))
-        # Add trend line
-        if week_twin_2.shape[0] > 1:
-            plot_trend(mcda, week_twin_2, weight_twin_2, join(folder_path, "trend_line_twin_2.png"))
+    # Add trend line
+    plot_trend(mcda=mcda, week=week_df, week1=list(week_twin_1["week"]), week2=list(week_twin_2["week"]),
+               weight1=weight_df_twin_1, weight2=weight_df_twin_2, save_path=join(folder_path, "trend_line.png"))
 
     # Get the files
-    result_files = [join(folder_path, file) for file in os.listdir(folder_path) if ".png" in file]
-
-    # Split into contents
-    twin_1_trend = [file for file in result_files if "trend" in file and "twin_1" in file][0]
-    twin_2_trend = [file for file in result_files if "trend" in file and "twin_2" in file][0]
-    twin_1_gaussians = [file for file in result_files if "gaussian" in file and "twin_1" in file]
-    twin_2_gaussians = [file for file in result_files if "gaussian" in file and "twin_2" in file]
+    gaussian_files = [join(folder_path, file) for file in os.listdir(folder_path) if "gaussian" in file]
 
     # Create df for percentage
-    try:
-        twin_1_percentage = pd.DataFrame({"Week": week_twin_1["week"], "Percentage": twin_1_percentage})
-    except:
-        twin_1_percentage = pd.DataFrame({"Week": [week_twin_1], "Percentage": twin_1_percentage})
-    try:
-        twin_2_percentage = pd.DataFrame({"Week": week_twin_2["week"], "Percentage": twin_2_percentage})
-    except:
-        twin_2_percentage = pd.DataFrame({"Week": [week_twin_2], "Percentage": twin_2_percentage})
+    week1, week2 = list(week_twin_1["week"]), list(week_twin_2["week"])
+    percentage_df = pd.DataFrame({"Week": [], "Twin 1": [], "Twin 2": []})
+    i, j = 0, 0
+    for k, week in enumerate(week_df["week"]):
+        per1, per2 = np.nan, np.nan
+        if week == week1[i]:
+            per1 = twin_1_percentage[i]
+            i += 1
+        if week == week2[j]:
+            per2 = twin_2_percentage[j]
+            j += 1
+        percentage_df.loc[k] = [week, per1, per2]
 
     # Save as csv
-    twin_1_percentage.to_csv(join(folder_path, "twin_1_percentage.csv"), index=False)
-    twin_2_percentage.to_csv(join(folder_path, "twin_2_percentage.csv"), index=False)
+    percentage_df.to_csv(join(folder_path, "percentages.csv"), index=False)
 
-    return render_template('index.html',  data=request.form, results=True,
-                           twin_1_trend=twin_1_trend, twin_2_trend=twin_2_trend,
-                           twin_1_gaussians=twin_1_gaussians, twin_2_gaussians=twin_2_gaussians,
-                           twin_1_percentage=join(folder_path, "twin_1_percentage.csv"),
-                           twin_2_percentage=join(folder_path, "twin_2_percentage.csv"))
+    # Save the trend data
+    trend_data = {"mcda": mcda, "week": week_df, "week1": list(week_twin_1["week"]),
+                  "week2": list(week_twin_2["week"]), "weight1": list(weight_df_twin_1["weight"]),
+                  "weight2": list(weight_df_twin_2["weight"]), "save_path": join(folder_path, "trend_line.png"),
+                  "data": data, "trend_line": join(folder_path, "trend_line.png"), "gaussians": gaussian_files,
+                  "percentages_df": join(folder_path, "percentages.csv"),
+                  "trend_data_path": join(folder_path, "trend_data.pkl")}
+    with open(join(folder_path, "trend_data.pkl"), "wb") as file:
+        pickle.dump(trend_data, file)
+
+    return render_template('index.html', data=data, results=True,
+                           trend_line=join(folder_path, "trend_line.png"),
+                           gaussians=gaussian_files,
+                           percentages_df=join(folder_path, "percentages.csv"),
+                           trend_data=join(folder_path, "trend_data.pkl"),
+                           extended_by=1)
+
+
+@app.route("/adjust_trend", methods=['POST', 'GET'])
+def adjust_trend():
+    # Read the form data
+    trend_data = request.form.get("trend_data")
+    trend_data = pickle.load(open(trend_data, "rb"))
+    extended_by = request.form.get("range")
+    if not extended_by:
+        extended_by = 1
+    else:
+        extended_by = int(extended_by)
+
+    # Extract all the data needed
+    plot_trend(mcda=trend_data["mcda"], week=trend_data["week"], week1=trend_data["week1"], week2=trend_data["week2"],
+               weight1=trend_data["weight1"], weight2=trend_data["weight2"], save_path=trend_data["save_path"],
+               extend_by=extended_by)
+
+    return render_template('index.html', data=trend_data["data"], results=True,
+                           trend_line=trend_data["save_path"],
+                           gaussians=trend_data["gaussians"],
+                           percentages_df=trend_data["percentages_df"],
+                           trend_data=trend_data["trend_data_path"],
+                           extended_by=extended_by)
 
 
 @app.route('/', methods=['GET'])

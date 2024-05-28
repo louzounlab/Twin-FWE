@@ -64,17 +64,8 @@
             document.getElementById('cda_type').value = "DCDA";
         }
 
-        function toggleAdvanceResults1() {
-            const x = document.getElementById("advance_results_1");
-            if (x.style.display === "none") {
-                x.style.display = "block";
-            } else {
-                x.style.display = "none";
-            }
-        }
-
-        function toggleAdvanceResults2() {
-            const x = document.getElementById("advance_results_2");
+        function toggleAdvanceResults() {
+            const x = document.getElementById("advance_results");
             if (x.style.display === "none") {
                 x.style.display = "block";
             } else {
@@ -86,54 +77,43 @@
     {% if results %}
         <br>
         <br>
-        <div class="container row justify-content-evenly">
-            <div class="col center text-center">
-                <h3>Twin 1</h3>
-                <br>
-                <br>
-                <div>
-                    <a href="{{ twin_1_trend }}" download class="center">
-                        <img src="{{ twin_1_trend }}" height="300" width="400">
+        <div class="container col text-center">
+            <h2>Results</h2>
+            <br>
+            <div class="row justify-content-center align-items-center">
+                <div class="col-md-auto">
+                    <a href="{{ trend_line }}" download class="center">
+                        <img src="{{ trend_line }}" height="350" width="450">
                     </a>
                 </div>
-                <br>
-                <button type="button" onclick="toggleAdvanceResults1()">Advanced Results</button>
-                <br>
-                <div class="container center text-center hidden" id="advance_results_1">
-                    {% for file in twin_1_gaussians %}
-                        <a href="{{ file }}" download class="center">
-                            <img src="{{ file }}" height="300" width="400">
-                        </a>
-                    {% endfor %}
+                <div class="col-md-auto">
+                    <form action="/adjust_trend" method="post" enctype="multipart/form-data">
+                        <input hidden id="trend_data" name="trend_data" value="{{ trend_data }}">
+                        <br>
+                        <label for="change_range">Adjust Range</label>
+                        <br>
+                        <br>
+                        <input type="number" name="range" id="range" min="1" max="10" step="1" value="{{ extended_by }}">
+                        <br>
+                        <br>
+                        <button type="submit">Apply</button>
+                    </form>
                 </div>
-            <br>
-            <br>
-            <a href="{{ twin_1_percentage }}" download="{{ twin_1_percentage }}"
-               class="form-label text-bg-dark" style="font-size: 16px;">
-                Click here to download the percentages results</a>
             </div>
-            <div class="col center text-center">
-                <h3>Twin 2</h3>
-                <br>
-                <br>
-                <div>
-                    <a href="{{ twin_2_trend }}" download class="center">
-                        <img src="{{ twin_2_trend }}" height="300" width="400">
+            <br>
+            <button type="button" onclick="toggleAdvanceResults()">Advanced Results</button>
+            <br>
+            <div class="container center text-center" id="advance_results" style="display: none">
+                {% for file in gaussians %}
+                    <a href="{{ file }}" download class="center">
+                        <img src="{{ file }}" height="300" width="400">
                     </a>
-                </div>
-                <br>
-                <button type="button" onclick="toggleAdvanceResults2()">Advanced Results</button>
-                <br>
-                <div class="container hidden center text-center" id="advance_results_2">
-                    {% for file in twin_2_gaussians %}
-                        <a href="{{ file }}" download class="center">
-                            <img src="{{ file }}" height="300" width="400">
-                        </a>
-                    {% endfor %}
-                </div>
-                <br>
-                <br>
-                <a href="{{ twin_2_percentage }}" download="{{ twin_2_percentage }}"
+                {% endfor %}
+            </div>
+            <br>
+            <br>
+            <div class="text-center">
+                <a href="{{ percentages_df }}" download="{{ percentages_df }}"
                    class="form-label text-bg-dark" style="font-size: 16px;">
                     Click here to download the percentages results</a>
             </div>
@@ -162,95 +142,69 @@
                 </div>
             </div>
             <br><br>
-            <div class="row">
-                <div class="col"><h4>Twin 1</h4></div>
-                <div class="col"><h4>Twin 2</h4></div>
-            </div>
             <br>
             <div class="row">
                 <div class="col">
-                    <label for="week1">Week</label>
+                    <label for="week">Week</label>
                     <br>
                     <br>
-                    <input name="week1" id="week1" type="number" value="{{ data['week_1'] }}">
-                    <br>
-                    <br>
-                    <b style="font-size: 20px; color: blue;">OR</b>
-                    <br>
-                    <br>
-                    <input name="week1_1" id="week1_1" type="number" value="{{ data['week1_1'] }}"><br>
-                    <input name="week1_2" id="week1_2" type="number" value="{{ data['week1_2'] }}"><br>
-                    <input name="week1_3" id="week1_3" type="number" value="{{ data['week1_3'] }}"><br>
-                    <input name="week1_4" id="week1_4" type="number" value="{{ data['week1_4'] }}"><br>
-                    <input name="week1_5" id="week1_5" type="number" value="{{ data['week1_5'] }}"><br>
-                    <input name="week1_6" id="week1_6" type="number" value="{{ data['week1_6'] }}"><br>
-                    <input name="week1_7" id="week1_7" type="number" value="{{ data['week1_7'] }}"><br>
-                    <input name="week1_8" id="week1_8" type="number" value="{{ data['week1_8'] }}"><br>
-                    <input name="week1_9" id="week1_9" type="number" value="{{ data['week1_9'] }}"><br>
-                    <input name="week1_10" id="week1_10" type="number" value="{{ data['week1_10'] }}"><br>
+                    <input name="week1" id="week1" type="number" value="{{ data['week1'] }}" min="12" max="36" step="1"><br>
+                    <input name="week2" id="week2" type="number" value="{{ data['week2'] }}" min="12" max="36" step="1"><br>
+                    <input name="week3" id="week3" type="number" value="{{ data['week3'] }}" min="12" max="36" step="1"><br>
+                    <input name="week4" id="week4" type="number" value="{{ data['week4'] }}" min="12" max="36" step="1"><br>
+                    <input name="week5" id="week5" type="number" value="{{ data['week5'] }}" min="12" max="36" step="1"><br>
+                    <input name="week6" id="week6" type="number" value="{{ data['week6'] }}" min="12" max="36" step="1"><br>
+                    <input name="week7" id="week7" type="number" value="{{ data['week7'] }}" min="12" max="36" step="1"><br>
+                    <input name="week8" id="week8" type="number" value="{{ data['week8'] }}" min="12" max="36" step="1"><br>
+                    <input name="week9" id="week9" type="number" value="{{ data['week9'] }}" min="12" max="36" step="1"><br>
+                    <input name="week10" id="week10" type="number" value="{{ data['week10'] }}" min="12" max="36"
+                           step="1"><br>
                 </div>
                 <div class="col">
-                    <label for="weight1">Weight</label>
+                    <label for="Day">Day</label>
                     <br>
                     <br>
-                    <input name="weight1" id="weight1" type="number" value="{{ data['weight_1'] }}">
-                    <br>
-                    <br>
-                    <b style="font-size: 20px; color: blue;">OR</b>
-                    <br>
-                    <br>
-                    <input name="weight1_1" id="weight1_1" type="number" value="{{ data['weight1_1'] }}"><br>
-                    <input name="weight1_2" id="weight1_2" type="number" value="{{ data['weight1_2'] }}"><br>
-                    <input name="weight1_3" id="weight1_3" type="number" value="{{ data['weight1_3'] }}"><br>
-                    <input name="weight1_4" id="weight1_4" type="number" value="{{ data['weight1_4'] }}"><br>
-                    <input name="weight1_5" id="weight1_5" type="number" value="{{ data['weight1_5'] }}"><br>
-                    <input name="weight1_6" id="weight1_6" type="number" value="{{ data['weight1_6'] }}"><br>
-                    <input name="weight1_7" id="weight1_7" type="number" value="{{ data['weight1_7'] }}"><br>
-                    <input name="weight1_8" id="weight1_8" type="number" value="{{ data['weight1_8'] }}"><br>
-                    <input name="weight1_9" id="weight1_9" type="number" value="{{ data['weight1_9'] }}"><br>
-                    <input name="weight1_10" id="weight1_10" type="number" value="{{ data['weight1_10'] }}"><br>
+                    <input name="Day1" id="Day1" type="number" value="{{ data['Day1'] }}" min="0" max="6" step="1"><br>
+                    <input name="Day2" id="Day2" type="number" value="{{ data['Day2'] }}" min="0" max="6" step="1"><br>
+                    <input name="Day3" id="Day3" type="number" value="{{ data['Day3'] }}" min="0" max="6" step="1"><br>
+                    <input name="Day4" id="Day4" type="number" value="{{ data['Day4'] }}" min="0" max="6" step="1"><br>
+                    <input name="Day5" id="Day5" type="number" value="{{ data['Day5'] }}" min="0" max="6" step="1"><br>
+                    <input name="Day6" id="Day6" type="number" value="{{ data['Day6'] }}" min="0" max="6" step="1"><br>
+                    <input name="Day7" id="Day7" type="number" value="{{ data['Day7'] }}" min="0" max="6" step="1"><br>
+                    <input name="Day8" id="Day8" type="number" value="{{ data['Day8'] }}" min="0" max="6" step="1"><br>
+                    <input name="Day9" id="Day9" type="number" value="{{ data['Day9'] }}" min="0" max="6" step="1"><br>
+                    <input name="Day10" id="Day10" type="number" value="{{ data['Day10'] }}" min="0" max="6"
+                           step="1"><br>
                 </div>
                 <div class="col">
-                    <label for="week2">Week</label>
+                    <label>EFW1</label>
                     <br>
                     <br>
-                    <input name="week2" id="week2" type="number" value="{{ data['week2'] }}">
-                    <br>
-                    <br>
-                    <b style="font-size: 20px; color: blue;">OR</b>
-                    <br>
-                    <br>
-                    <input name="week2_1" id="week2_1" type="number" value="{{ data['week2_1'] }}"><br>
-                    <input name="week2_2" id="week2_2" type="number" value="{{ data['week2_2'] }}"><br>
-                    <input name="week2_3" id="week2_3" type="number" value="{{ data['week2_3'] }}"><br>
-                    <input name="week2_4" id="week2_4" type="number" value="{{ data['week2_4'] }}"><br>
-                    <input name="week2_5" id="week2_5" type="number" value="{{ data['week2_5'] }}"><br>
-                    <input name="week2_6" id="week2_6" type="number" value="{{ data['week2_6'] }}"><br>
-                    <input name="week2_7" id="week2_7" type="number" value="{{ data['week2_7'] }}"><br>
-                    <input name="week2_8" id="week2_8" type="number" value="{{ data['week2_8'] }}"><br>
-                    <input name="week2_9" id="week2_9" type="number" value="{{ data['week2_9'] }}"><br>
-                    <input name="week2_10" id="week2_10" type="number" value="{{ data['week2_10'] }}"><br>
+                    <input name="EFW1_1" id="EFW1_1" type="number" value="{{ data['EFW1_1'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW1_2" id="EFW1_2" type="number" value="{{ data['EFW1_2'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW1_3" id="EFW1_3" type="number" value="{{ data['EFW1_3'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW1_4" id="EFW1_4" type="number" value="{{ data['EFW1_4'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW1_5" id="EFW1_5" type="number" value="{{ data['EFW1_5'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW1_6" id="EFW1_6" type="number" value="{{ data['EFW1_6'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW1_7" id="EFW1_7" type="number" value="{{ data['EFW1_7'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW1_8" id="EFW1_8" type="number" value="{{ data['EFW1_8'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW1_9" id="EFW1_9" type="number" value="{{ data['EFW1_9'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW1_10" id="EFW1_10" type="number" value="{{ data['EFW1_10'] }}" min="1" max="4000" step="0.1"><br>
                 </div>
                 <div class="col">
-                    <label for="weight2">Weight</label>
+                    <label for="EFW2">EFW2</label>
                     <br>
                     <br>
-                    <input name="weight2" id="weight2" type="number" value="{{ data['weight_2'] }}">
-                    <br>
-                    <br>
-                    <b style="font-size: 20px; color: blue;">OR</b>
-                    <br>
-                    <br>
-                    <input name="weight2_1" id="weight2_1" type="number" value="{{ data['weight2_1'] }}"><br>
-                    <input name="weight2_2" id="weight2_2" type="number" value="{{ data['weight2_2'] }}"><br>
-                    <input name="weight2_3" id="weight2_3" type="number" value="{{ data['weight2_3'] }}"><br>
-                    <input name="weight2_4" id="weight2_4" type="number" value="{{ data['weight2_4'] }}"><br>
-                    <input name="weight2_5" id="weight2_5" type="number" value="{{ data['weight2_5'] }}"><br>
-                    <input name="weight2_6" id="weight2_6" type="number" value="{{ data['weight2_6'] }}"><br>
-                    <input name="weight2_7" id="weight2_7" type="number" value="{{ data['weight2_7'] }}"><br>
-                    <input name="weight2_8" id="weight2_8" type="number" value="{{ data['weight2_8'] }}"><br>
-                    <input name="weight2_9" id="weight2_9" type="number" value="{{ data['weight2_9'] }}"><br>
-                    <input name="weight2_10" id="weight2_10" type="number" value="{{ data['weight2_10'] }}"><br>
+                    <input name="EFW2_1" id="EFW2_1" type="number" value="{{ data['EFW2_1'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW2_2" id="EFW2_2" type="number" value="{{ data['EFW2_2'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW2_3" id="EFW2_3" type="number" value="{{ data['EFW2_3'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW2_4" id="EFW2_4" type="number" value="{{ data['EFW2_4'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW2_5" id="EFW2_5" type="number" value="{{ data['EFW2_5'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW2_6" id="EFW2_6" type="number" value="{{ data['EFW2_6'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW2_7" id="EFW2_7" type="number" value="{{ data['EFW2_7'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW2_8" id="EFW2_8" type="number" value="{{ data['EFW2_8'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW2_9" id="EFW2_9" type="number" value="{{ data['EFW2_9'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW2_10" id="EFW2_10" type="number" value="{{ data['EFW2_10'] }}" min="1" max="4000" step="0.1"><br>
                 </div>
             </div>
             <br>
