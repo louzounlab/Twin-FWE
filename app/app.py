@@ -371,7 +371,7 @@ def adjust_trend():
 @app.route('/Home', methods=['GET'])
 def home():
     clean_old_files()
-    return render_template("index.html", data={})
+    return render_template("index.html", data={}, percentage_dict={})
 
 
 @app.route('/Example', methods=['GET'])
