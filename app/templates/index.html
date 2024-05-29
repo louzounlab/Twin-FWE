@@ -26,6 +26,18 @@
             background-color: plum; /* Selected background color */
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Add a box shadow when selected */
         }
+
+        .styled-label {
+            background-color: #6200ea; /* Deep purple background */
+            color: #ffffff; /* White text color */
+            padding: 8px 12px; /* Padding for the label */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+            font-size: 1rem; /* Font size */
+            font-weight: bold; /* Bold text */
+            margin-bottom: 8px; /* Space between label and input */
+            transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+        }
     </style>
 
 {% endblock %}
@@ -72,6 +84,18 @@
                 x.style.display = "none";
             }
         }
+
+        function switchGrid() {
+            const x = document.getElementById("input_row");
+            const y = document.getElementById("results_row");
+            if (x.hidden) {
+                x.hidden = false;
+                y.hidden = true;
+            } else {
+                x.hidden = true;
+                y.hidden = false;
+            }
+        }
     </script>
 
     {% if results %}
@@ -93,7 +117,8 @@
                         <label for="change_range">Adjust Range</label>
                         <br>
                         <br>
-                        <input type="number" name="range" id="range" min="1" max="10" step="1" value="{{ extended_by }}">
+                        <input type="number" name="range" id="range" min="1" max="10" step="1"
+                               value="{{ extended_by }}">
                         <br>
                         <br>
                         <button type="submit">Apply</button>
@@ -143,7 +168,18 @@
             </div>
             <br><br>
             <br>
-            <div class="row">
+            {% if results %}
+                <script>
+                    switchGrid();
+                </script>
+                <div class="container text-left">
+                    <button type="button" onclick="switchGrid()" style="font-size: 1rem;">Switch Grid</button>
+                </div>
+                <br>
+                <br>
+                <br>
+            {% endif %}
+            <div class="row" id="input_row">
                 <div class="col">
                     <label for="week">Week</label>
                     <br>
@@ -180,31 +216,84 @@
                     <label>EFW1</label>
                     <br>
                     <br>
-                    <input name="EFW1_1" id="EFW1_1" type="number" value="{{ data['EFW1_1'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW1_2" id="EFW1_2" type="number" value="{{ data['EFW1_2'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW1_3" id="EFW1_3" type="number" value="{{ data['EFW1_3'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW1_4" id="EFW1_4" type="number" value="{{ data['EFW1_4'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW1_5" id="EFW1_5" type="number" value="{{ data['EFW1_5'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW1_6" id="EFW1_6" type="number" value="{{ data['EFW1_6'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW1_7" id="EFW1_7" type="number" value="{{ data['EFW1_7'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW1_8" id="EFW1_8" type="number" value="{{ data['EFW1_8'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW1_9" id="EFW1_9" type="number" value="{{ data['EFW1_9'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW1_10" id="EFW1_10" type="number" value="{{ data['EFW1_10'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW1_1" id="EFW1_1" type="number" value="{{ data['EFW1_1'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW1_2" id="EFW1_2" type="number" value="{{ data['EFW1_2'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW1_3" id="EFW1_3" type="number" value="{{ data['EFW1_3'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW1_4" id="EFW1_4" type="number" value="{{ data['EFW1_4'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW1_5" id="EFW1_5" type="number" value="{{ data['EFW1_5'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW1_6" id="EFW1_6" type="number" value="{{ data['EFW1_6'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW1_7" id="EFW1_7" type="number" value="{{ data['EFW1_7'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW1_8" id="EFW1_8" type="number" value="{{ data['EFW1_8'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW1_9" id="EFW1_9" type="number" value="{{ data['EFW1_9'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW1_10" id="EFW1_10" type="number" value="{{ data['EFW1_10'] }}" min="1" max="4000"
+                           step="0.1"><br>
                 </div>
                 <div class="col">
                     <label for="EFW2">EFW2</label>
                     <br>
                     <br>
-                    <input name="EFW2_1" id="EFW2_1" type="number" value="{{ data['EFW2_1'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW2_2" id="EFW2_2" type="number" value="{{ data['EFW2_2'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW2_3" id="EFW2_3" type="number" value="{{ data['EFW2_3'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW2_4" id="EFW2_4" type="number" value="{{ data['EFW2_4'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW2_5" id="EFW2_5" type="number" value="{{ data['EFW2_5'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW2_6" id="EFW2_6" type="number" value="{{ data['EFW2_6'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW2_7" id="EFW2_7" type="number" value="{{ data['EFW2_7'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW2_8" id="EFW2_8" type="number" value="{{ data['EFW2_8'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW2_9" id="EFW2_9" type="number" value="{{ data['EFW2_9'] }}" min="1" max="4000" step="0.1"><br>
-                    <input name="EFW2_10" id="EFW2_10" type="number" value="{{ data['EFW2_10'] }}" min="1" max="4000" step="0.1"><br>
+                    <input name="EFW2_1" id="EFW2_1" type="number" value="{{ data['EFW2_1'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW2_2" id="EFW2_2" type="number" value="{{ data['EFW2_2'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW2_3" id="EFW2_3" type="number" value="{{ data['EFW2_3'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW2_4" id="EFW2_4" type="number" value="{{ data['EFW2_4'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW2_5" id="EFW2_5" type="number" value="{{ data['EFW2_5'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW2_6" id="EFW2_6" type="number" value="{{ data['EFW2_6'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW2_7" id="EFW2_7" type="number" value="{{ data['EFW2_7'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW2_8" id="EFW2_8" type="number" value="{{ data['EFW2_8'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW2_9" id="EFW2_9" type="number" value="{{ data['EFW2_9'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW2_10" id="EFW2_10" type="number" value="{{ data['EFW2_10'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                </div>
+            </div>
+            <br>
+            <div class="row" hidden id="results_row">
+                <div class="col">
+                    <label for="per1">Percentage1</label>
+                    <br>
+                    <br>
+                    <label class="styled-label" id="per1_1">{{ percentage_dict['per1_1'] }}</label><br>
+                    <label class="styled-label" id="per1_2">{{ percentage_dict['per1_2'] }}</label><br>
+                    <label class="styled-label" id="per1_3">{{ percentage_dict['per1_3'] }}</label><br>
+                    <label class="styled-label" id="per1_4">{{ percentage_dict['per1_4'] }}</label><br>
+                    <label class="styled-label" id="per1_5">{{ percentage_dict['per1_5'] }}</label><br>
+                    <label class="styled-label" id="per1_6">{{ percentage_dict['per1_6'] }}</label><br>
+                    <label class="styled-label" id="per1_7">{{ percentage_dict['per1_7'] }}</label><br>
+                    <label class="styled-label" id="per1_8">{{ percentage_dict['per1_8'] }}</label><br>
+                    <label class="styled-label" id="per1_9">{{ percentage_dict['per1_9'] }}</label><br>
+                    <label class="styled-label" id="per1_10">{{ percentage_dict['per1_10'] }}</label><br>
+                </div>
+                <div class="col">
+                    <label for="per2">Percentage2</label>
+                    <br>
+                    <br>
+                    <label class="styled-label" id="per2_1">{{ percentage_dict['per2_1'] }}</label><br>
+                    <label class="styled-label" id="per2_2">{{ percentage_dict['per2_2'] }}</label><br>
+                    <label class="styled-label" id="per2_3">{{ percentage_dict['per2_3'] }}</label><br>
+                    <label class="styled-label" id="per2_4">{{ percentage_dict['per2_4'] }}</label><br>
+                    <label class="styled-label" id="per2_5">{{ percentage_dict['per2_5'] }}</label><br>
+                    <label class="styled-label" id="per2_6">{{ percentage_dict['per2_6'] }}</label><br>
+                    <label class="styled-label" id="per2_7">{{ percentage_dict['per2_7'] }}</label><br>
+                    <label class="styled-label" id="per2_8">{{ percentage_dict['per2_8'] }}</label><br>
+                    <label class="styled-label" id="per2_9">{{ percentage_dict['per2_9'] }}</label><br>
+                    <label class="styled-label" id="per2_10">{{ percentage_dict['per2_10'] }}</label><br>
                 </div>
             </div>
             <br>

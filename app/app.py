@@ -139,6 +139,8 @@ def plot_trend(mcda, week, week1, week2, weight1, weight2, save_path, title="Tre
     # Plot the weight
     ax.plot(week1, weight1, color="dodgerblue", label="EFW1", linewidth=4)
     ax.plot(week2, weight2, color='hotpink', label="EFW2", linewidth=4)
+    ax.scatter(week1, weight1, color="dodgerblue", s=6*rcParams['lines.markersize'] ** 2)
+    ax.scatter(week2, weight2, color='hotpink', s=6*rcParams['lines.markersize'] ** 2)
 
     # Set the labels
     ax.set_title(title)
@@ -292,16 +294,32 @@ def process_form():
     i, j = 0, 0
     for k, week in enumerate(week_df["week"]):
         per1, per2 = np.nan, np.nan
-        if week == week1[i]:
-            per1 = twin_1_percentage[i]
-            i += 1
-        if week == week2[j]:
-            per2 = twin_2_percentage[j]
-            j += 1
+        try:
+            if week == week1[i]:
+                per1 = twin_1_percentage[i]
+                i += 1
+        except:
+            pass
+        try:
+            if week == week2[j]:
+                per2 = twin_2_percentage[j]
+                j += 1
+        except:
+            pass
         percentage_df.loc[k] = [week, per1, per2]
 
     # Save as csv
     percentage_df.to_csv(join(folder_path, "percentages.csv"), index=False)
+
+    percentage_dict = {}
+    for j in range(1, 2+1):
+        for i in range(1, 11):
+            try:
+                val = str(percentage_df[f"Twin {j}"].iloc[i - 1])
+                val = val if val != "nan" else ""
+            except:
+                val = ""
+            percentage_dict[f"per{j}_{i}"] = val
 
     # Save the trend data
     trend_data = {"mcda": mcda, "week": week_df, "week1": list(week_twin_1["week"]),
@@ -309,7 +327,8 @@ def process_form():
                   "weight2": list(weight_df_twin_2["weight"]), "save_path": join(folder_path, "trend_line.png"),
                   "data": data, "trend_line": join(folder_path, "trend_line.png"), "gaussians": gaussian_files,
                   "percentages_df": join(folder_path, "percentages.csv"),
-                  "trend_data_path": join(folder_path, "trend_data.pkl")}
+                  "trend_data_path": join(folder_path, "trend_data.pkl"),
+                  "percentage_dict": percentage_dict}
     with open(join(folder_path, "trend_data.pkl"), "wb") as file:
         pickle.dump(trend_data, file)
 
@@ -318,7 +337,7 @@ def process_form():
                            gaussians=gaussian_files,
                            percentages_df=join(folder_path, "percentages.csv"),
                            trend_data=join(folder_path, "trend_data.pkl"),
-                           extended_by=1)
+                           extended_by=1, percentage_dict=percentage_dict)
 
 
 @app.route("/adjust_trend", methods=['POST', 'GET'])
@@ -337,12 +356,15 @@ def adjust_trend():
                weight1=trend_data["weight1"], weight2=trend_data["weight2"], save_path=trend_data["save_path"],
                extend_by=extended_by)
 
-    return render_template('index.html', data=trend_data["data"], results=True,
+    return render_template('index.html',
+                           data=trend_data["data"],
+                           results=True,
                            trend_line=trend_data["save_path"],
                            gaussians=trend_data["gaussians"],
                            percentages_df=trend_data["percentages_df"],
                            trend_data=trend_data["trend_data_path"],
-                           extended_by=extended_by)
+                           extended_by=extended_by,
+                           percentage_dict=trend_data["percentage_dict"])
 
 
 @app.route('/', methods=['GET'])
