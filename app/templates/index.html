@@ -269,31 +269,43 @@
                     <label for="per1">Percentage1</label>
                     <br>
                     <br>
-                    <label class="styled-label" id="per1_1">{{ percentage_dict['per1_1'] }}</label><br>
-                    <label class="styled-label" id="per1_2">{{ percentage_dict['per1_2'] }}</label><br>
-                    <label class="styled-label" id="per1_3">{{ percentage_dict['per1_3'] }}</label><br>
-                    <label class="styled-label" id="per1_4">{{ percentage_dict['per1_4'] }}</label><br>
-                    <label class="styled-label" id="per1_5">{{ percentage_dict['per1_5'] }}</label><br>
-                    <label class="styled-label" id="per1_6">{{ percentage_dict['per1_6'] }}</label><br>
-                    <label class="styled-label" id="per1_7">{{ percentage_dict['per1_7'] }}</label><br>
-                    <label class="styled-label" id="per1_8">{{ percentage_dict['per1_8'] }}</label><br>
-                    <label class="styled-label" id="per1_9">{{ percentage_dict['per1_9'] }}</label><br>
-                    <label class="styled-label" id="per1_10">{{ percentage_dict['per1_10'] }}</label><br>
+                    {#                    <label class="styled-label" id="per1_1">{{ data["week1"] }} ({{ data["Day1"] }}) - {{ percentage_dict['per1_1'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per1_2">{{ data["week2"] }} ({{ data["Day2"] }}) - {{ percentage_dict['per1_2'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per1_3">{{ data["week3"] }} ({{ data["Day3"] }}) - {{ percentage_dict['per1_3'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per1_4">{{ data["week4"] }} ({{ data["Day4"] }}) - {{ percentage_dict['per1_4'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per1_5">{{ data["week5"] }} ({{ data["Day5"] }}) - {{ percentage_dict['per1_5'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per1_6">{{ data["week6"] }} ({{ data["Day6"] }}) - {{ percentage_dict['per1_6'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per1_7">{{ data["week7"] }} ({{ data["Day7"] }}) - {{ percentage_dict['per1_7'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per1_8">{{ data["week8"] }} ({{ data["Day8"] }}) - {{ percentage_dict['per1_8'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per1_9">{{ data["week9"] }} ({{ data["Day9"] }}) - {{ percentage_dict['per1_9'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per1_10">{{ data["week10"] }} ({{ data["Day10"] }}) - {{ percentage_dict['per1_10'] }}</label><br>#}
+                    {% for i in range(1, 11) %}
+                        {% if percentage_dict['per1_{}'.format(i)] %}
+                            <label class="styled-label">{{ data["week{}".format(i)] }} ({{ data["Day{}".format(i)] }})
+                                - {{ percentage_dict['per1_{}'.format(i)] }}</label><br>
+                        {% endif %}
+                    {% endfor %}
                 </div>
                 <div class="col">
                     <label for="per2">Percentage2</label>
                     <br>
                     <br>
-                    <label class="styled-label" id="per2_1">{{ percentage_dict['per2_1'] }}</label><br>
-                    <label class="styled-label" id="per2_2">{{ percentage_dict['per2_2'] }}</label><br>
-                    <label class="styled-label" id="per2_3">{{ percentage_dict['per2_3'] }}</label><br>
-                    <label class="styled-label" id="per2_4">{{ percentage_dict['per2_4'] }}</label><br>
-                    <label class="styled-label" id="per2_5">{{ percentage_dict['per2_5'] }}</label><br>
-                    <label class="styled-label" id="per2_6">{{ percentage_dict['per2_6'] }}</label><br>
-                    <label class="styled-label" id="per2_7">{{ percentage_dict['per2_7'] }}</label><br>
-                    <label class="styled-label" id="per2_8">{{ percentage_dict['per2_8'] }}</label><br>
-                    <label class="styled-label" id="per2_9">{{ percentage_dict['per2_9'] }}</label><br>
-                    <label class="styled-label" id="per2_10">{{ percentage_dict['per2_10'] }}</label><br>
+                    {#                    <label class="styled-label" id="per2_1">{{ data["week1"] }} ({{ data["Day1"] }}) - {{ percentage_dict['per2_1'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per2_2">{{ data["week2"] }} ({{ data["Day2"] }}) - {{ percentage_dict['per2_2'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per2_3">{{ data["week3"] }} ({{ data["Day3"] }}) - {{ percentage_dict['per2_3'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per2_4">{{ data["week4"] }} ({{ data["Day4"] }}) - {{ percentage_dict['per2_4'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per2_5">{{ data["week5"] }} ({{ data["Day5"] }}) - {{ percentage_dict['per2_5'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per2_6">{{ data["week6"] }} ({{ data["Day6"] }}) - {{ percentage_dict['per2_6'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per2_7">{{ data["week7"] }} ({{ data["Day7"] }}) - {{ percentage_dict['per2_7'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per2_8">{{ data["week8"] }} ({{ data["Day8"] }}) - {{ percentage_dict['per2_8'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per2_9">{{ data["week9"] }} ({{ data["Day9"] }}) - {{ percentage_dict['per2_9'] }}</label><br>#}
+                    {#                    <label class="styled-label" id="per2_10">{{ data["week10"] }} ({{ data["Day10"] }}) - {{ percentage_dict['per2_10'] }}</label><br>#}
+                    {% for i in range(1, 11) %}
+                        {% if percentage_dict['per2_{}'.format(i)] %}
+                            <label class="styled-label">{{ data["week{}".format(i)] }} ({{ data["Day{}".format(i)] }})
+                                - {{ percentage_dict['per2_{}'.format(i)] }}</label><br>
+                        {% endif %}
+                    {% endfor %}
                 </div>
             </div>
             <br>

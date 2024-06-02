@@ -139,8 +139,8 @@ def plot_trend(mcda, week, week1, week2, weight1, weight2, save_path, title="Tre
     # Plot the weight
     ax.plot(week1, weight1, color="dodgerblue", label="EFW1", linewidth=4)
     ax.plot(week2, weight2, color='hotpink', label="EFW2", linewidth=4)
-    ax.scatter(week1, weight1, color="dodgerblue", s=6*rcParams['lines.markersize'] ** 2)
-    ax.scatter(week2, weight2, color='hotpink', s=6*rcParams['lines.markersize'] ** 2)
+    ax.scatter(week1, weight1, color="dodgerblue", s=6 * rcParams['lines.markersize'] ** 2)
+    ax.scatter(week2, weight2, color='hotpink', s=6 * rcParams['lines.markersize'] ** 2)
 
     # Set the labels
     ax.set_title(title)
@@ -312,13 +312,15 @@ def process_form():
     percentage_df.to_csv(join(folder_path, "percentages.csv"), index=False)
 
     percentage_dict = {}
-    for j in range(1, 2+1):
+    for j in range(1, 2 + 1):
         for i in range(1, 11):
             try:
                 val = str(percentage_df[f"Twin {j}"].iloc[i - 1])
                 val = val if val != "nan" else ""
             except:
                 val = ""
+            if val:
+                val = f"{float(val):.2f}%"
             percentage_dict[f"per{j}_{i}"] = val
 
     # Save the trend data
