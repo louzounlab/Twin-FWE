@@ -39,7 +39,7 @@ def percentage_below_x(x, mean, std):
     # Calculate the percentage using the CDF
     percentage = norm.cdf(z) * 100
 
-    return percentage
+    return percentage, z
 
 
 def gaussian(x, mean, std):
@@ -91,12 +91,15 @@ def plot_gaussian(mcda, week, weight1, weight2, save_path, title=""):
 
     # Calculate the percentage below the weight
     percentage1, percentage2 = [None], [None]
+    z_score_1, z_score_2 = [None], [None]
     if weight1:
-        percentage1 = percentage_below_x(weight1, mean, std)
+        percentage1, z_score_1 = percentage_below_x(weight1, mean, std)
+        print("z_score_1:", z_score_1)
     if weight2:
-        percentage2 = percentage_below_x(weight2, mean, std)
+        percentage2, z_score_2 = percentage_below_x(weight2, mean, std)
+        print("z_score_2:", z_score_2)
 
-    return percentage1[0], percentage2[0]
+    return percentage1[0], percentage2[0], z_score_1[0], z_score_2[0]
 
 
 def plot_trend(mcda, week, week1, week2, weight1, weight2, save_path, title="Trend Line", extend_by=1):
@@ -197,10 +200,14 @@ def process_form():
 
     data = request.form
 
+    index_of_last_row = int(data.get('last_row', default=4))
+
     # Read the form data
     cda_type = data.get('cda_type')
     if cda_type == "None":
-        return render_template("index.html", error="Please select a MCDA/DCDA", data=data)
+        return render_template("index.html", error="Please select a MCDA/DCDA", data=data,
+                               percentage_dict={},
+                               zscore_dict={}, last_row=index_of_last_row)
 
     # Set the value of MCDA
     mcda = 1 if cda_type == "MCDA" else 0
@@ -234,7 +241,9 @@ def process_form():
     if week_df.shape[0] == 0:
         return render_template("index.html",
                                error="Please input at least one week.",
-                               data=data)
+                               data=data,
+                               percentage_dict={},
+                               zscore_dict={}, last_row=index_of_last_row)
 
     # Read the weeks from the form
     weights_list = [[], []]
@@ -254,32 +263,44 @@ def process_form():
     if weight_df_twin_1.shape[0] == 0:
         return render_template("index.html",
                                error="Please input at least one weight for twin 1.",
-                               data=data)
+                               percentage_dict={},
+                               data=data, zscore_dict={}, last_row=index_of_last_row)
     if weight_df_twin_2.shape[0] == 0:
         return render_template("index.html",
                                error="Please input at least one weight for twin 2.",
-                               data=data)
+                               percentage_dict={},
+                               data=data, zscore_dict={}, last_row=index_of_last_row)
 
     week_twin_1, week_twin_2 = week_df[~weight_df_twin_1["weight"].isna()], week_df[~weight_df_twin_2["weight"].isna()]
     weight_df_twin_1.dropna(inplace=True)
     weight_df_twin_2.dropna(inplace=True)
 
     twin_1_percentage, twin_2_percentage = [], []
+    twin_1_z_score, twin_2_z_score = [], []
     for i in range(week_df.shape[0]):
         week = week_df.iloc[i].week
         weight1, weight2 = None, None
         if week in list(week_twin_2["week"]):
-            weight2 = weight_df_twin_2[week_twin_2["week"] == week].iloc[0].weight
+            try:
+                weight2 = weight_df_twin_2[week_twin_2["week"] == week].iloc[0].weight
+            except:
+                return render_template("index.html",
+                                       error="Please input the weeks by the order.",
+                                       percentage_dict={},
+                                       data=data, zscore_dict={}, last_row=index_of_last_row)
         if week in list(week_twin_1["week"]):
             weight1 = weight_df_twin_1[week_twin_1["week"] == week].iloc[0].weight
-        percentage1, percentage2 = plot_gaussian(mcda=mcda, week=week,
-                                                 weight1=weight1, weight2=weight2,
-                                                 save_path=join(folder_path, f"gaussian_{week}.png"),
-                                                 title=f"Week {week}")
+        percentage1, percentage2, z_score1, z_score2 = plot_gaussian(mcda=mcda, week=week,
+                                                                     weight1=weight1, weight2=weight2,
+                                                                     save_path=join(folder_path,
+                                                                                    f"gaussian_{week}.png"),
+                                                                     title=f"Week {week}")
         if percentage1:
             twin_1_percentage.append(percentage1)
+            twin_1_z_score.append(z_score1)
         if percentage2:
             twin_2_percentage.append(percentage2)
+            twin_2_z_score.append(z_score2)
 
     # Add trend line
     plot_trend(mcda=mcda, week=week_df, week1=list(week_twin_1["week"]), week2=list(week_twin_2["week"]),
@@ -291,29 +312,36 @@ def process_form():
     # Create df for percentage
     week1, week2 = list(week_twin_1["week"]), list(week_twin_2["week"])
     percentage_df = pd.DataFrame({"Week": [], "Twin 1": [], "Twin 2": []})
+    zscore_df = pd.DataFrame({"Week": [], "Twin 1": [], "Twin 2": []})
     i, j = 0, 0
     for k, week in enumerate(week_df["week"]):
         per1, per2 = np.nan, np.nan
+        z1, z2 = np.nan, np.nan
         try:
             if week == week1[i]:
                 per1 = twin_1_percentage[i]
+                z1 = twin_1_z_score[i]
                 i += 1
         except:
             pass
         try:
             if week == week2[j]:
                 per2 = twin_2_percentage[j]
+                z2 = twin_2_z_score[j]
                 j += 1
         except:
             pass
         percentage_df.loc[k] = [week, per1, per2]
+        zscore_df.loc[k] = [week, z1, z2]
 
     # Save as csv
     percentage_df.to_csv(join(folder_path, "percentages.csv"), index=False)
 
     percentage_dict = {}
+    zscore_dict = {}
     for j in range(1, 2 + 1):
         for i in range(1, 11):
+            # For percentages
             try:
                 val = str(percentage_df[f"Twin {j}"].iloc[i - 1])
                 val = val if val != "nan" else ""
@@ -322,6 +350,15 @@ def process_form():
             if val:
                 val = f"{float(val):.2f}%"
             percentage_dict[f"per{j}_{i}"] = val
+            # For z-scores
+            try:
+                val = str(zscore_df[f"Twin {j}"].iloc[i - 1])
+                val = val if val != "nan" else ""
+            except:
+                val = ""
+            if val:
+                val = f"{float(val):.3f}"
+            zscore_dict[f"z{j}_{i}"] = val
 
     # Save the trend data
     trend_data = {"mcda": mcda, "week": week_df, "week1": list(week_twin_1["week"]),
@@ -330,7 +367,8 @@ def process_form():
                   "data": data, "trend_line": join(folder_path, "trend_line.png"), "gaussians": gaussian_files,
                   "percentages_df": join(folder_path, "percentages.csv"),
                   "trend_data_path": join(folder_path, "trend_data.pkl"),
-                  "percentage_dict": percentage_dict}
+                  "percentage_dict": percentage_dict,
+                  "zscore_dict": zscore_dict}
     with open(join(folder_path, "trend_data.pkl"), "wb") as file:
         pickle.dump(trend_data, file)
 
@@ -339,7 +377,8 @@ def process_form():
                            gaussians=gaussian_files,
                            percentages_df=join(folder_path, "percentages.csv"),
                            trend_data=join(folder_path, "trend_data.pkl"),
-                           extended_by=1, percentage_dict=percentage_dict)
+                           extended_by=1, percentage_dict=percentage_dict, zscore_dict=zscore_dict,
+                           last_row=index_of_last_row)
 
 
 @app.route("/adjust_trend", methods=['POST', 'GET'])
@@ -348,6 +387,7 @@ def adjust_trend():
     trend_data = request.form.get("trend_data")
     trend_data = pickle.load(open(trend_data, "rb"))
     extended_by = request.form.get("range")
+    index_of_last_row = int(request.form.get('last_row', default=4))
     if not extended_by:
         extended_by = 1
     else:
@@ -366,14 +406,15 @@ def adjust_trend():
                            percentages_df=trend_data["percentages_df"],
                            trend_data=trend_data["trend_data_path"],
                            extended_by=extended_by,
-                           percentage_dict=trend_data["percentage_dict"])
+                           percentage_dict=trend_data["percentage_dict"],
+                           zscore_dict=trend_data["zscore_dict"], last_row=index_of_last_row)
 
 
 @app.route('/', methods=['GET'])
 @app.route('/Home', methods=['GET'])
 def home():
     clean_old_files()
-    return render_template("index.html", data={}, percentage_dict={})
+    return render_template("index.html", data={}, percentage_dict={}, zscore_dict={}, last_row=4)
 
 
 @app.route('/Example', methods=['GET'])

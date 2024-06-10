@@ -87,23 +87,279 @@
 
         function switchGrid() {
             const x = document.getElementById("input_row");
+            const z = document.getElementById("input_but");
+            const w = document.getElementById("second_input_row");
             const y = document.getElementById("results_row");
             if (x.hidden) {
                 x.hidden = false;
+                z.hidden = false;
+                w.hidden = false;
                 y.hidden = true;
             } else {
                 x.hidden = true;
+                z.hidden = true;
+                w.hidden = true;
                 y.hidden = false;
+            }
+        }
+
+        function addRow() {
+            const week5 = document.getElementById("week5");
+            const week6 = document.getElementById("week6");
+            const week7 = document.getElementById("week7");
+            const week8 = document.getElementById("week8");
+            const week9 = document.getElementById("week9");
+            const week10 = document.getElementById("week10");
+
+            const Day5 = document.getElementById("Day5");
+            const Day6 = document.getElementById("Day6");
+            const Day7 = document.getElementById("Day7");
+            const Day8 = document.getElementById("Day8");
+            const Day9 = document.getElementById("Day9");
+            const Day10 = document.getElementById("Day10");
+
+            const EFW1_5 = document.getElementById("EFW1_5");
+            const EFW1_6 = document.getElementById("EFW1_6");
+            const EFW1_7 = document.getElementById("EFW1_7");
+            const EFW1_8 = document.getElementById("EFW1_8");
+            const EFW1_9 = document.getElementById("EFW1_9");
+            const EFW1_10 = document.getElementById("EFW1_10");
+
+            const EFW2_5 = document.getElementById("EFW2_5");
+            const EFW2_6 = document.getElementById("EFW2_6");
+            const EFW2_7 = document.getElementById("EFW2_7");
+            const EFW2_8 = document.getElementById("EFW2_8");
+            const EFW2_9 = document.getElementById("EFW2_9");
+            const EFW2_10 = document.getElementById("EFW2_10");
+
+            const last_row = document.getElementById("last_row");
+
+            if (week5.hidden) {
+                week5.hidden = false;
+                Day5.hidden = false;
+                EFW1_5.hidden = false;
+                EFW2_5.hidden = false;
+                last_row.value = 5;
+            } else if (week6.hidden) {
+                week6.hidden = false;
+                Day6.hidden = false;
+                EFW1_6.hidden = false;
+                EFW2_6.hidden = false;
+                last_row.value = 6;
+            } else if (week7.hidden) {
+                week7.hidden = false;
+                Day7.hidden = false;
+                EFW1_7.hidden = false;
+                EFW2_7.hidden = false;
+                last_row.value = 7;
+            } else if (week8.hidden) {
+                week8.hidden = false;
+                Day8.hidden = false;
+                EFW1_8.hidden = false;
+                EFW2_8.hidden = false;
+                last_row.value = 8;
+            } else if (week9.hidden) {
+                week9.hidden = false;
+                Day9.hidden = false;
+                EFW1_9.hidden = false;
+                EFW2_9.hidden = false;
+                last_row.value = 9;
+            } else if (week10.hidden) {
+                week10.hidden = false;
+                Day10.hidden = false;
+                EFW1_10.hidden = false;
+                EFW2_10.hidden = false;
+                last_row.value = 10;
+            } else {
+                alert("You can't add more than 6 rows")
             }
         }
     </script>
 
+    <h4 style="color: red; text-align: center;">{{ error }}</h4>
+    <br>
+    <div class="container text-center">
+        <form action="/process_form" method="post" enctype="multipart/form-data">
+            <input type="text" hidden id="cda_type" name="cda_type" value="None">
+            <input type="number" hidden id="last_row" name="last_row" value="{{ last_row }}">
+            <div class="row" id="first_row">
+                <div class="col">
+                    <label for="cda">MCDA <b style="color: blue; font-size: 20px;">or</b> DCDA</label>
+                    <br>
+                    <br>
+                    <button class="glow-button" onclick="glow1()" id="MCDA" name="MCDA" type="button">MCDA</button>
+                    <button class="glow-button" onclick="glow2()" id="DCDA" name="DCDA" type="button">DCDA</button>
+                </div>
+            </div>
+            <br><br><br>
+            <div class="just">
+                <button type="submit">Submit</button>
+                {% if results %}
+                    <p>                 </p>
+                    <button type="button" onclick="switchGrid()" style="font-size: 1rem;">Switch Grid</button>
+                {% endif %}
+            </div>
+            <div class="row" id="input_row" {% if results %}hidden{% endif %}>
+                <div class="col">
+                    <label for="week">Week</label>
+                    <br>
+                    <br>
+                    <input name="week1" id="week1" type="number" value="{{ data['week1'] }}" min="12" max="36" step="1"><br>
+                    <input name="week2" id="week2" type="number" value="{{ data['week2'] }}" min="12" max="36" step="1"><br>
+                    <input name="week3" id="week3" type="number" value="{{ data['week3'] }}" min="12" max="36" step="1"><br>
+                    <input name="week4" id="week4" type="number" value="{{ data['week4'] }}" min="12" max="36" step="1"><br>
+                </div>
+                <div class="col">
+                    <label for="Day">Day</label>
+                    <br>
+                    <br>
+                    <input name="Day1" id="Day1" type="number" value="{{ data['Day1'] }}" min="0" max="6" step="1"><br>
+                    <input name="Day2" id="Day2" type="number" value="{{ data['Day2'] }}" min="0" max="6" step="1"><br>
+                    <input name="Day3" id="Day3" type="number" value="{{ data['Day3'] }}" min="0" max="6" step="1"><br>
+                    <input name="Day4" id="Day4" type="number" value="{{ data['Day4'] }}" min="0" max="6" step="1"><br>
+                </div>
+                <div class="col">
+                    <label>EFW1</label>
+                    <br>
+                    <br>
+                    <input name="EFW1_1" id="EFW1_1" type="number" value="{{ data['EFW1_1'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW1_2" id="EFW1_2" type="number" value="{{ data['EFW1_2'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW1_3" id="EFW1_3" type="number" value="{{ data['EFW1_3'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW1_4" id="EFW1_4" type="number" value="{{ data['EFW1_4'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                </div>
+                <div class="col">
+                    <label for="EFW2">EFW2</label>
+                    <br>
+                    <br>
+                    <input name="EFW2_1" id="EFW2_1" type="number" value="{{ data['EFW2_1'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW2_2" id="EFW2_2" type="number" value="{{ data['EFW2_2'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW2_3" id="EFW2_3" type="number" value="{{ data['EFW2_3'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                    <input name="EFW2_4" id="EFW2_4" type="number" value="{{ data['EFW2_4'] }}" min="1" max="4000"
+                           step="0.1"><br>
+                </div>
+            </div>
+            <br>
+            <div {% if results %}hidden{% endif %} id="input_but">
+                <button type="button" name="add_row" id="add_row" onclick="addRow()">add row</button>
+            </div>
+            <br>
+            <div class="row" {% if results %}hidden{% endif %} id="second_input_row">
+                <div class="col">
+                    <input name="week5" id="week5" type="number" value="{{ data['week5'] }}" min="12" max="36" step="1"
+                           {% if last_row < 5 %}hidden{% endif %}><br>
+                    <input name="week6" id="week6" type="number" value="{{ data['week6'] }}" min="12" max="36" step="1"
+                           {% if last_row < 6 %}hidden{% endif %}><br>
+                    <input name="week7" id="week7" type="number" value="{{ data['week7'] }}" min="12" max="36" step="1"
+                           {% if last_row < 7 %}hidden{% endif %}><br>
+                    <input name="week8" id="week8" type="number" value="{{ data['week8'] }}" min="12" max="36" step="1"
+                           {% if last_row < 8 %}hidden{% endif %}><br>
+                    <input name="week9" id="week9" type="number" value="{{ data['week9'] }}" min="12" max="36" step="1"
+                           {% if last_row < 9 %}hidden{% endif %}><br>
+                    <input name="week10" id="week10" type="number" value="{{ data['week10'] }}" min="12" max="36"
+                           step="1" {% if last_row < 10 %}hidden{% endif %}><br>
+                </div>
+                <div class="col">
+                    <input name="Day5" id="Day5" type="number" value="{{ data['Day5'] }}" min="0" max="6" step="1"
+                           {% if last_row < 5 %}hidden{% endif %}><br>
+                    <input name="Day6" id="Day6" type="number" value="{{ data['Day6'] }}" min="0" max="6" step="1"
+                           {% if last_row < 6 %}hidden{% endif %}><br>
+                    <input name="Day7" id="Day7" type="number" value="{{ data['Day7'] }}" min="0" max="6" step="1"
+                           {% if last_row < 7 %}hidden{% endif %}><br>
+                    <input name="Day8" id="Day8" type="number" value="{{ data['Day8'] }}" min="0" max="6" step="1"
+                           {% if last_row < 8 %}hidden{% endif %}><br>
+                    <input name="Day9" id="Day9" type="number" value="{{ data['Day9'] }}" min="0" max="6" step="1"
+                           {% if last_row < 9 %}hidden{% endif %}><br>
+                    <input name="Day10" id="Day10" type="number" value="{{ data['Day10'] }}" min="0" max="6"
+                           step="1" {% if last_row < 10 %}hidden{% endif %}><br>
+                </div>
+                <div class="col">
+                    <input name="EFW1_5" id="EFW1_5" type="number" value="{{ data['EFW1_5'] }}" min="1" max="4000"
+                           step="0.1" {% if last_row < 5 %}hidden{% endif %}><br>
+                    <input name="EFW1_6" id="EFW1_6" type="number" value="{{ data['EFW1_6'] }}" min="1" max="4000"
+                           step="0.1" {% if last_row < 6 %}hidden{% endif %}><br>
+                    <input name="EFW1_7" id="EFW1_7" type="number" value="{{ data['EFW1_7'] }}" min="1" max="4000"
+                           step="0.1" {% if last_row < 7 %}hidden{% endif %}><br>
+                    <input name="EFW1_8" id="EFW1_8" type="number" value="{{ data['EFW1_8'] }}" min="1" max="4000"
+                           step="0.1" {% if last_row < 8 %}hidden{% endif %}><br>
+                    <input name="EFW1_9" id="EFW1_9" type="number" value="{{ data['EFW1_9'] }}" min="1" max="4000"
+                           step="0.1" {% if last_row < 9 %}hidden{% endif %}><br>
+                    <input name="EFW1_10" id="EFW1_10" type="number" value="{{ data['EFW1_10'] }}" min="1" max="4000"
+                           step="0.1" {% if last_row < 10 %}hidden{% endif %}><br>
+                </div>
+                <div class="col">
+                    <input name="EFW2_5" id="EFW2_5" type="number" value="{{ data['EFW2_5'] }}" min="1" max="4000"
+                           step="0.1" {% if last_row < 5 %}hidden{% endif %}><br>
+                    <input name="EFW2_6" id="EFW2_6" type="number" value="{{ data['EFW2_6'] }}" min="1" max="4000"
+                           step="0.1" {% if last_row < 6 %}hidden{% endif %}><br>
+                    <input name="EFW2_7" id="EFW2_7" type="number" value="{{ data['EFW2_7'] }}" min="1" max="4000"
+                           step="0.1" {% if last_row < 7 %}hidden{% endif %}><br>
+                    <input name="EFW2_8" id="EFW2_8" type="number" value="{{ data['EFW2_8'] }}" min="1" max="4000"
+                           step="0.1" {% if last_row < 8 %}hidden{% endif %}><br>
+                    <input name="EFW2_9" id="EFW2_9" type="number" value="{{ data['EFW2_9'] }}" min="1" max="4000"
+                           step="0.1" {% if last_row < 9 %}hidden{% endif %}><br>
+                    <input name="EFW2_10" id="EFW2_10" type="number" value="{{ data['EFW2_10'] }}" min="1" max="4000"
+                           step="0.1" {% if last_row < 10 %}hidden{% endif %}><br>
+                </div>
+            </div>
+            <div class="row" {% if not results %}hidden{% endif %} id="results_row">
+                <div class="col">
+                    <label>Percentage1</label>
+                    <br>
+                    <br>
+                    {% for i in range(1, 11) %}
+                        {% if percentage_dict['per1_{}'.format(i)] %}
+                            <label class="styled-label">{{ data["week{}".format(i)] }} ({{ data["Day{}".format(i)] }})
+                                - {{ percentage_dict['per1_{}'.format(i)] }}</label><br>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="col">
+                    <label>Z-score1</label>
+                    <br>
+                    <br>
+                    {% for i in range(1, 11) %}
+                        {% if zscore_dict['z1_{}'.format(i)] %}
+                            <label class="styled-label">{{ data["week{}".format(i)] }} ({{ data["Day{}".format(i)] }})
+                                - {{ zscore_dict['z1_{}'.format(i)] }}</label><br>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="col">
+                    <label>Percentage2</label>
+                    <br>
+                    <br>
+                    {% for i in range(1, 11) %}
+                        {% if percentage_dict['per2_{}'.format(i)] %}
+                            <label class="styled-label">{{ data["week{}".format(i)] }} ({{ data["Day{}".format(i)] }})
+                                - {{ percentage_dict['per2_{}'.format(i)] }}</label><br>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="col">
+                    <label>Z-score2</label>
+                    <br>
+                    <br>
+                    {% for i in range(1, 11) %}
+                        {% if zscore_dict['z2_{}'.format(i)] %}
+                            <label class="styled-label">{{ data["week{}".format(i)] }} ({{ data["Day{}".format(i)] }})
+                                - {{ zscore_dict['z2_{}'.format(i)] }}</label><br>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        <br>
+        </form>
+    </div>
     {% if results %}
-        <br>
-        <br>
         <div class="container col text-center">
             <h2>Results</h2>
-            <br>
             <div class="row justify-content-center align-items-center">
                 <div class="col-md-auto">
                     <a href="{{ trend_line }}" download class="center">
@@ -144,177 +400,7 @@
             </div>
         </div>
     {% endif %}
-
-    <h4 style="color: red; text-align: center;">{{ error }}</h4>
     <br>
-    <div class="text-center">
-        <h1>Twin EFW</h1>
-    </div>
-    <div class="container text-center">
-        <br>
-        <h4>Please fill the following details:</h4>
-        <br>
-        <br>
-        <form action="/process_form" method="post" enctype="multipart/form-data">
-            <input type="text" hidden id="cda_type" name="cda_type" value="None">
-            <div class="row" id="first_row">
-                <div class="col">
-                    <label for="cda">MCDA <b style="color: blue; font-size: 20px;">or</b> DCDA</label>
-                    <br>
-                    <br>
-                    <button class="glow-button" onclick="glow1()" id="MCDA" name="MCDA" type="button">MCDA</button>
-                    <button class="glow-button" onclick="glow2()" id="DCDA" name="DCDA" type="button">DCDA</button>
-                </div>
-            </div>
-            <br><br>
-            <br>
-            {% if results %}
-                <script>
-                    switchGrid();
-                </script>
-                <div class="container text-left">
-                    <button type="button" onclick="switchGrid()" style="font-size: 1rem;">Switch Grid</button>
-                </div>
-                <br>
-                <br>
-                <br>
-            {% endif %}
-            <div class="row" id="input_row">
-                <div class="col">
-                    <label for="week">Week</label>
-                    <br>
-                    <br>
-                    <input name="week1" id="week1" type="number" value="{{ data['week1'] }}" min="12" max="36" step="1"><br>
-                    <input name="week2" id="week2" type="number" value="{{ data['week2'] }}" min="12" max="36" step="1"><br>
-                    <input name="week3" id="week3" type="number" value="{{ data['week3'] }}" min="12" max="36" step="1"><br>
-                    <input name="week4" id="week4" type="number" value="{{ data['week4'] }}" min="12" max="36" step="1"><br>
-                    <input name="week5" id="week5" type="number" value="{{ data['week5'] }}" min="12" max="36" step="1"><br>
-                    <input name="week6" id="week6" type="number" value="{{ data['week6'] }}" min="12" max="36" step="1"><br>
-                    <input name="week7" id="week7" type="number" value="{{ data['week7'] }}" min="12" max="36" step="1"><br>
-                    <input name="week8" id="week8" type="number" value="{{ data['week8'] }}" min="12" max="36" step="1"><br>
-                    <input name="week9" id="week9" type="number" value="{{ data['week9'] }}" min="12" max="36" step="1"><br>
-                    <input name="week10" id="week10" type="number" value="{{ data['week10'] }}" min="12" max="36"
-                           step="1"><br>
-                </div>
-                <div class="col">
-                    <label for="Day">Day</label>
-                    <br>
-                    <br>
-                    <input name="Day1" id="Day1" type="number" value="{{ data['Day1'] }}" min="0" max="6" step="1"><br>
-                    <input name="Day2" id="Day2" type="number" value="{{ data['Day2'] }}" min="0" max="6" step="1"><br>
-                    <input name="Day3" id="Day3" type="number" value="{{ data['Day3'] }}" min="0" max="6" step="1"><br>
-                    <input name="Day4" id="Day4" type="number" value="{{ data['Day4'] }}" min="0" max="6" step="1"><br>
-                    <input name="Day5" id="Day5" type="number" value="{{ data['Day5'] }}" min="0" max="6" step="1"><br>
-                    <input name="Day6" id="Day6" type="number" value="{{ data['Day6'] }}" min="0" max="6" step="1"><br>
-                    <input name="Day7" id="Day7" type="number" value="{{ data['Day7'] }}" min="0" max="6" step="1"><br>
-                    <input name="Day8" id="Day8" type="number" value="{{ data['Day8'] }}" min="0" max="6" step="1"><br>
-                    <input name="Day9" id="Day9" type="number" value="{{ data['Day9'] }}" min="0" max="6" step="1"><br>
-                    <input name="Day10" id="Day10" type="number" value="{{ data['Day10'] }}" min="0" max="6"
-                           step="1"><br>
-                </div>
-                <div class="col">
-                    <label>EFW1</label>
-                    <br>
-                    <br>
-                    <input name="EFW1_1" id="EFW1_1" type="number" value="{{ data['EFW1_1'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW1_2" id="EFW1_2" type="number" value="{{ data['EFW1_2'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW1_3" id="EFW1_3" type="number" value="{{ data['EFW1_3'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW1_4" id="EFW1_4" type="number" value="{{ data['EFW1_4'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW1_5" id="EFW1_5" type="number" value="{{ data['EFW1_5'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW1_6" id="EFW1_6" type="number" value="{{ data['EFW1_6'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW1_7" id="EFW1_7" type="number" value="{{ data['EFW1_7'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW1_8" id="EFW1_8" type="number" value="{{ data['EFW1_8'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW1_9" id="EFW1_9" type="number" value="{{ data['EFW1_9'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW1_10" id="EFW1_10" type="number" value="{{ data['EFW1_10'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                </div>
-                <div class="col">
-                    <label for="EFW2">EFW2</label>
-                    <br>
-                    <br>
-                    <input name="EFW2_1" id="EFW2_1" type="number" value="{{ data['EFW2_1'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW2_2" id="EFW2_2" type="number" value="{{ data['EFW2_2'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW2_3" id="EFW2_3" type="number" value="{{ data['EFW2_3'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW2_4" id="EFW2_4" type="number" value="{{ data['EFW2_4'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW2_5" id="EFW2_5" type="number" value="{{ data['EFW2_5'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW2_6" id="EFW2_6" type="number" value="{{ data['EFW2_6'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW2_7" id="EFW2_7" type="number" value="{{ data['EFW2_7'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW2_8" id="EFW2_8" type="number" value="{{ data['EFW2_8'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW2_9" id="EFW2_9" type="number" value="{{ data['EFW2_9'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                    <input name="EFW2_10" id="EFW2_10" type="number" value="{{ data['EFW2_10'] }}" min="1" max="4000"
-                           step="0.1"><br>
-                </div>
-            </div>
-            <br>
-            <div class="row" hidden id="results_row">
-                <div class="col">
-                    <label for="per1">Percentage1</label>
-                    <br>
-                    <br>
-                    {#                    <label class="styled-label" id="per1_1">{{ data["week1"] }} ({{ data["Day1"] }}) - {{ percentage_dict['per1_1'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per1_2">{{ data["week2"] }} ({{ data["Day2"] }}) - {{ percentage_dict['per1_2'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per1_3">{{ data["week3"] }} ({{ data["Day3"] }}) - {{ percentage_dict['per1_3'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per1_4">{{ data["week4"] }} ({{ data["Day4"] }}) - {{ percentage_dict['per1_4'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per1_5">{{ data["week5"] }} ({{ data["Day5"] }}) - {{ percentage_dict['per1_5'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per1_6">{{ data["week6"] }} ({{ data["Day6"] }}) - {{ percentage_dict['per1_6'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per1_7">{{ data["week7"] }} ({{ data["Day7"] }}) - {{ percentage_dict['per1_7'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per1_8">{{ data["week8"] }} ({{ data["Day8"] }}) - {{ percentage_dict['per1_8'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per1_9">{{ data["week9"] }} ({{ data["Day9"] }}) - {{ percentage_dict['per1_9'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per1_10">{{ data["week10"] }} ({{ data["Day10"] }}) - {{ percentage_dict['per1_10'] }}</label><br>#}
-                    {% for i in range(1, 11) %}
-                        {% if percentage_dict['per1_{}'.format(i)] %}
-                            <label class="styled-label">{{ data["week{}".format(i)] }} ({{ data["Day{}".format(i)] }})
-                                - {{ percentage_dict['per1_{}'.format(i)] }}</label><br>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-                <div class="col">
-                    <label for="per2">Percentage2</label>
-                    <br>
-                    <br>
-                    {#                    <label class="styled-label" id="per2_1">{{ data["week1"] }} ({{ data["Day1"] }}) - {{ percentage_dict['per2_1'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per2_2">{{ data["week2"] }} ({{ data["Day2"] }}) - {{ percentage_dict['per2_2'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per2_3">{{ data["week3"] }} ({{ data["Day3"] }}) - {{ percentage_dict['per2_3'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per2_4">{{ data["week4"] }} ({{ data["Day4"] }}) - {{ percentage_dict['per2_4'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per2_5">{{ data["week5"] }} ({{ data["Day5"] }}) - {{ percentage_dict['per2_5'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per2_6">{{ data["week6"] }} ({{ data["Day6"] }}) - {{ percentage_dict['per2_6'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per2_7">{{ data["week7"] }} ({{ data["Day7"] }}) - {{ percentage_dict['per2_7'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per2_8">{{ data["week8"] }} ({{ data["Day8"] }}) - {{ percentage_dict['per2_8'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per2_9">{{ data["week9"] }} ({{ data["Day9"] }}) - {{ percentage_dict['per2_9'] }}</label><br>#}
-                    {#                    <label class="styled-label" id="per2_10">{{ data["week10"] }} ({{ data["Day10"] }}) - {{ percentage_dict['per2_10'] }}</label><br>#}
-                    {% for i in range(1, 11) %}
-                        {% if percentage_dict['per2_{}'.format(i)] %}
-                            <label class="styled-label">{{ data["week{}".format(i)] }} ({{ data["Day{}".format(i)] }})
-                                - {{ percentage_dict['per2_{}'.format(i)] }}</label><br>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-            <br>
-            <br>
-
-            <button type="submit">Submit</button>
-            <br>
-            <br>
-            <br>
-        </form>
-    </div>
+    <br>
+    <br>
 {% endblock %}
