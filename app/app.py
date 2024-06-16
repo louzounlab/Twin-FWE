@@ -94,10 +94,8 @@ def plot_gaussian(mcda, week, weight1, weight2, save_path, title=""):
     z_score_1, z_score_2 = [None], [None]
     if weight1:
         percentage1, z_score_1 = percentage_below_x(weight1, mean, std)
-        print("z_score_1:", z_score_1)
     if weight2:
         percentage2, z_score_2 = percentage_below_x(weight2, mean, std)
-        print("z_score_2:", z_score_2)
 
     return percentage1[0], percentage2[0], z_score_1[0], z_score_2[0]
 
@@ -207,7 +205,7 @@ def process_form():
     if cda_type == "None":
         return render_template("index.html", error="Please select a MCDA/DCDA", data=data,
                                percentage_dict={},
-                               zscore_dict={}, last_row=index_of_last_row)
+                               zscore_dict={}, last_row=index_of_last_row, discordance_index={})
 
     # Set the value of MCDA
     mcda = 1 if cda_type == "MCDA" else 0
@@ -243,7 +241,7 @@ def process_form():
                                error="Please input at least one week.",
                                data=data,
                                percentage_dict={},
-                               zscore_dict={}, last_row=index_of_last_row)
+                               zscore_dict={}, last_row=index_of_last_row, discordance_index={})
 
     # Read the weeks from the form
     weights_list = [[], []]
@@ -259,17 +257,29 @@ def process_form():
     weight_df_twin_1 = pd.DataFrame({"weight": weights_list[0]})
     weight_df_twin_2 = pd.DataFrame({"weight": weights_list[1]})
 
+    # Calculate discordance index
+    discordance_index = {}
+    indexes_1, indexes_2 = weight_df_twin_1.isna(), weight_df_twin_2.isna()
+    for i in range(len(weeks_list)):
+        weight1, weight2 = None, None
+        if not indexes_1.iloc[i]["weight"]:
+            weight1 = weight_df_twin_1.iloc[i]["weight"]
+        if not indexes_1.iloc[i]["weight"]:
+            weight2 = weight_df_twin_2.iloc[i]["weight"]
+        if weight1 and weight2:
+            discordance_index[i+1] = f"{100 * abs(weight1 - weight2) / max(weight1, weight2):.2f}%"
+
     # Check insertion
     if weight_df_twin_1.shape[0] == 0:
         return render_template("index.html",
                                error="Please input at least one weight for twin 1.",
                                percentage_dict={},
-                               data=data, zscore_dict={}, last_row=index_of_last_row)
+                               data=data, zscore_dict={}, last_row=index_of_last_row, discordance_index={})
     if weight_df_twin_2.shape[0] == 0:
         return render_template("index.html",
                                error="Please input at least one weight for twin 2.",
                                percentage_dict={},
-                               data=data, zscore_dict={}, last_row=index_of_last_row)
+                               data=data, zscore_dict={}, last_row=index_of_last_row, discordance_index={})
 
     week_twin_1, week_twin_2 = week_df[~weight_df_twin_1["weight"].isna()], week_df[~weight_df_twin_2["weight"].isna()]
     weight_df_twin_1.dropna(inplace=True)
@@ -287,7 +297,7 @@ def process_form():
                 return render_template("index.html",
                                        error="Please input the weeks by the order.",
                                        percentage_dict={},
-                                       data=data, zscore_dict={}, last_row=index_of_last_row)
+                                       data=data, zscore_dict={}, last_row=index_of_last_row, discordance_index={})
         if week in list(week_twin_1["week"]):
             weight1 = weight_df_twin_1[week_twin_1["week"] == week].iloc[0].weight
         percentage1, percentage2, z_score1, z_score2 = plot_gaussian(mcda=mcda, week=week,
@@ -336,6 +346,7 @@ def process_form():
 
     # Save as csv
     percentage_df.to_csv(join(folder_path, "percentages.csv"), index=False)
+    zscore_df.to_csv(join(folder_path, "zscores.csv"), index=False)
 
     percentage_dict = {}
     zscore_dict = {}
@@ -366,9 +377,11 @@ def process_form():
                   "weight2": list(weight_df_twin_2["weight"]), "save_path": join(folder_path, "trend_line.png"),
                   "data": data, "trend_line": join(folder_path, "trend_line.png"), "gaussians": gaussian_files,
                   "percentages_df": join(folder_path, "percentages.csv"),
+                  "zscores_df": join(folder_path, "zscores.csv"),
                   "trend_data_path": join(folder_path, "trend_data.pkl"),
                   "percentage_dict": percentage_dict,
-                  "zscore_dict": zscore_dict}
+                  "zscore_dict": zscore_dict,
+                  "discordance_index": discordance_index}
     with open(join(folder_path, "trend_data.pkl"), "wb") as file:
         pickle.dump(trend_data, file)
 
@@ -376,9 +389,10 @@ def process_form():
                            trend_line=join(folder_path, "trend_line.png"),
                            gaussians=gaussian_files,
                            percentages_df=join(folder_path, "percentages.csv"),
+                           zscore_df=join(folder_path, "zscores.csv"),
                            trend_data=join(folder_path, "trend_data.pkl"),
                            extended_by=1, percentage_dict=percentage_dict, zscore_dict=zscore_dict,
-                           last_row=index_of_last_row)
+                           last_row=index_of_last_row, discordance_index=discordance_index)
 
 
 @app.route("/adjust_trend", methods=['POST', 'GET'])
@@ -404,10 +418,12 @@ def adjust_trend():
                            trend_line=trend_data["save_path"],
                            gaussians=trend_data["gaussians"],
                            percentages_df=trend_data["percentages_df"],
+                           zscore_df=trend_data["zscores_df"],
                            trend_data=trend_data["trend_data_path"],
                            extended_by=extended_by,
                            percentage_dict=trend_data["percentage_dict"],
-                           zscore_dict=trend_data["zscore_dict"], last_row=index_of_last_row)
+                           zscore_dict=trend_data["zscore_dict"], last_row=index_of_last_row,
+                           discordance_index=trend_data["discordance_index"])
 
 
 @app.route('/', methods=['GET'])
