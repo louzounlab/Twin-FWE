@@ -28,7 +28,31 @@
         }
 
         .styled-label {
-            background-color: #6200ea; /* Deep purple background */
+            background-color: #90e5e2; /* background color */
+            color: #ffffff; /* White text color */
+            padding: 8px 12px; /* Padding for the label */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+            font-size: 1rem; /* Font size */
+            font-weight: bold; /* Bold text */
+            margin-bottom: 8px; /* Space between label and input */
+            transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+        }
+
+        .discordance-label {
+            background-color: lightgreen; /* background color */
+            color: #ffffff; /* White text color */
+            padding: 8px 12px; /* Padding for the label */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+            font-size: 1rem; /* Font size */
+            font-weight: bold; /* Bold text */
+            margin-bottom: 8px; /* Space between label and input */
+            transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+        }
+
+        .discordance-label.red {
+            background-color: red; /* background color */
             color: #ffffff; /* White text color */
             padding: 8px 12px; /* Padding for the label */
             border-radius: 8px; /* Rounded corners */
@@ -358,7 +382,7 @@
                     <br>
                     <br>
                     {% for i in discordance_index %}
-                        <label class="styled-label">{{ data["week{}".format(i)] }}({{ data["Day{}".format(i)] }}) {{ discordance_index[i] }}</label>
+                        <label class="discordance-label {% if highlight_index[i] == 1 %}red{% endif %}">{{ data["week{}".format(i)] }}({{ data["Day{}".format(i)] }}) {{ discordance_index[i] }}</label>
                         <br>
                     {% endfor %}
                 </div>

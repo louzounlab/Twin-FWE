@@ -205,7 +205,7 @@ def process_form():
     if cda_type == "None":
         return render_template("index.html", error="Please select a MCDA/DCDA", data=data,
                                percentage_dict={},
-                               zscore_dict={}, last_row=index_of_last_row, discordance_index={})
+                               zscore_dict={}, last_row=index_of_last_row, discordance_index={}, highlight_index={})
 
     # Set the value of MCDA
     mcda = 1 if cda_type == "MCDA" else 0
@@ -241,7 +241,7 @@ def process_form():
                                error="Please input at least one week.",
                                data=data,
                                percentage_dict={},
-                               zscore_dict={}, last_row=index_of_last_row, discordance_index={})
+                               zscore_dict={}, last_row=index_of_last_row, discordance_index={}, highlight_index={})
 
     # Read the weeks from the form
     weights_list = [[], []]
@@ -258,7 +258,7 @@ def process_form():
     weight_df_twin_2 = pd.DataFrame({"weight": weights_list[1]})
 
     # Calculate discordance index
-    discordance_index = {}
+    discordance_index, highlight_index = {}, {}
     indexes_1, indexes_2 = weight_df_twin_1.isna(), weight_df_twin_2.isna()
     for i in range(len(weeks_list)):
         weight1, weight2 = None, None
@@ -267,19 +267,23 @@ def process_form():
         if not indexes_1.iloc[i]["weight"]:
             weight2 = weight_df_twin_2.iloc[i]["weight"]
         if weight1 and weight2:
-            discordance_index[i+1] = f"{100 * abs(weight1 - weight2) / max(weight1, weight2):.2f}%"
+            discordance = abs(weight1 - weight2) / max(weight1, weight2)
+            discordance_index[i + 1] = f"{100 * discordance:.2f}%"
+            highlight_index[i + 1] = 1 if discordance > 0.2 else 0
 
     # Check insertion
     if weight_df_twin_1.shape[0] == 0:
         return render_template("index.html",
                                error="Please input at least one weight for twin 1.",
                                percentage_dict={},
-                               data=data, zscore_dict={}, last_row=index_of_last_row, discordance_index={})
+                               data=data, zscore_dict={}, last_row=index_of_last_row, discordance_index={},
+                               highlight_index={})
     if weight_df_twin_2.shape[0] == 0:
         return render_template("index.html",
                                error="Please input at least one weight for twin 2.",
                                percentage_dict={},
-                               data=data, zscore_dict={}, last_row=index_of_last_row, discordance_index={})
+                               data=data, zscore_dict={}, last_row=index_of_last_row, discordance_index={},
+                               highlight_index={})
 
     week_twin_1, week_twin_2 = week_df[~weight_df_twin_1["weight"].isna()], week_df[~weight_df_twin_2["weight"].isna()]
     weight_df_twin_1.dropna(inplace=True)
@@ -297,7 +301,8 @@ def process_form():
                 return render_template("index.html",
                                        error="Please input the weeks by the order.",
                                        percentage_dict={},
-                                       data=data, zscore_dict={}, last_row=index_of_last_row, discordance_index={})
+                                       data=data, zscore_dict={}, last_row=index_of_last_row, discordance_index={},
+                                       highlight_index={})
         if week in list(week_twin_1["week"]):
             weight1 = weight_df_twin_1[week_twin_1["week"] == week].iloc[0].weight
         percentage1, percentage2, z_score1, z_score2 = plot_gaussian(mcda=mcda, week=week,
@@ -381,7 +386,9 @@ def process_form():
                   "trend_data_path": join(folder_path, "trend_data.pkl"),
                   "percentage_dict": percentage_dict,
                   "zscore_dict": zscore_dict,
-                  "discordance_index": discordance_index}
+                  "discordance_index": discordance_index,
+                  "highlight_index": highlight_index
+                  }
     with open(join(folder_path, "trend_data.pkl"), "wb") as file:
         pickle.dump(trend_data, file)
 
@@ -392,7 +399,8 @@ def process_form():
                            zscore_df=join(folder_path, "zscores.csv"),
                            trend_data=join(folder_path, "trend_data.pkl"),
                            extended_by=1, percentage_dict=percentage_dict, zscore_dict=zscore_dict,
-                           last_row=index_of_last_row, discordance_index=discordance_index)
+                           last_row=index_of_last_row, discordance_index=discordance_index,
+                           highlight_index=highlight_index)
 
 
 @app.route("/adjust_trend", methods=['POST', 'GET'])
@@ -423,7 +431,8 @@ def adjust_trend():
                            extended_by=extended_by,
                            percentage_dict=trend_data["percentage_dict"],
                            zscore_dict=trend_data["zscore_dict"], last_row=index_of_last_row,
-                           discordance_index=trend_data["discordance_index"])
+                           discordance_index=trend_data["discordance_index"],
+                           highlight_index=trend_data["highlight_index"])
 
 
 @app.route('/', methods=['GET'])
